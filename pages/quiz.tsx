@@ -374,32 +374,41 @@ export default function QuizPage() {
         explain: false,
       };
 
-      const r = await fetch("/api/recommend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+     // ---- fetch recommendations ----
+let data: any = null; // declare it outside try so it's accessible below
 
-      const data = await r.json();
-      if (!r.ok) throw new Error(data?.error || "Failed to get results");
+try {
+  const r = await fetch("/api/recommend", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
-      setResults(Array.isArray(data) ? data : data.results || data);
-    } catch (e: any) {
-      setError(e.message || "Unknown error");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-// Save the quiz lead to Airtable (after we have results)
+  data = await r.json(); // assign here (not const)
+  if (!r.ok) throw new Error(data?.error || "Failed to get results");
+
+  setResults(Array.isArray(data) ? data : data.results || data);
+} catch (e: any) {
+  setError(e.message || "Unknown error");
+} finally {
+  setSubmitting(false);
+}
+
+// ---- save the quiz lead to Airtable (after we have results) ----
 if (data) {
   try {
+    const selectedIds =
+      Array.isArray(data) ? data.map((r: any) => r.id)
+      : Array.isArray(data.results) ? data.results.map((r: any) => r.id)
+      : [];
+
     await fetch("/api/lead", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: state.name,
         quiz: state,
-        selectedIds: (Array.isArray(data) ? data : data.results || []).map((r: any) => r.id),
+        selectedIds,
         payload,
       }),
     });
