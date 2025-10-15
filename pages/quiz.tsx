@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// at the very top of pages/quiz.tsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { useRouter } from "next/router";
 // ...
