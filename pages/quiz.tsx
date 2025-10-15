@@ -354,53 +354,54 @@ export default function QuizPage() {
   }, [step, state]);
 
   const handleSubmit = async () => {
-    try {
-      setSubmitting(true);
-      setError(null);
-      setResults(null);
+  setSubmitting(true);
+  setError(null);
+  setResults(null);
 
-      const payload = {
-        // exact keys your /api/recommend understands
-        mode: state.location === "home" ? "Home" : "Out",
-        group: mapGroup(state.group),
-        vibe: mapVibe(state.vibe),
-        tone: mapExperienceTagsToTone(state.experienceTags),
-        flavour: mapFlavour(state.flavourProfile),
-        budget_pp: state.budget_pp ?? 100,
-        party_size: mapGroupSize(state.group),
-        adventure: mapAdventure(state.adventureLevel),
-        involvement: mapInvolvement(state.involvement),
-        hard_nos: mapRestrictions(state.restrictions),
-        explain: false,
-      };
+  // ---- payload your /api/recommend understands ----
+  const payload = {
+    mode: state.location === "home" ? "Home" : "Out",
+    group: mapGroup(state.group),
+    vibe: mapVibe(state.vibe),
+    tone: mapExperienceTagsToTone(state.experienceTags),
+    flavour: mapFlavour(state.flavourProfile),
+    budget_pp: state.budget_pp ?? 100,
+    party_size: mapGroupSize(state.group),
+    adventure: mapAdventure(state.adventureLevel),
+    involvement: mapInvolvement(state.involvement),
+    hard_nos: mapRestrictions(state.restrictions),
+    explain: false,
+  };
 
-     // ---- fetch recommendations ----
-let data: any = null; // declare it outside try so it's accessible below
+  // keep data in outer scope so we can use it after the try/catch
+  let data: any = null;
 
-try {
-  const r = await fetch("/api/recommend", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  // ---- fetch recommendations ----
+  try {
+    const r = await fetch("/api/recommend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-  data = await r.json(); // assign here (not const)
-  if (!r.ok) throw new Error(data?.error || "Failed to get results");
+    data = await r.json();
+    if (!r.ok) throw new Error(data?.error || "Failed to get results");
 
-  setResults(Array.isArray(data) ? data : data.results || data);
-} catch (e: any) {
-  setError(e.message || "Unknown error");
-} finally {
-  setSubmitting(false);
-}
+    setResults(Array.isArray(data) ? data : data.results || data);
+  } catch (e: any) {
+    setError(e.message || "Unknown error");
+  } finally {
+    setSubmitting(false);
+  }
 
-// ---- save the quiz lead to Airtable (after we have results) ----
-if (data) {
+  // ---- save the quiz lead to Airtable (after we have results) ----
   try {
     const selectedIds =
-      Array.isArray(data) ? data.map((r: any) => r.id)
-      : Array.isArray(data.results) ? data.results.map((r: any) => r.id)
-      : [];
+      Array.isArray(data)
+        ? data.map((r: any) => r.id)
+        : Array.isArray(data?.results)
+        ? data.results.map((r: any) => r.id)
+        : [];
 
     await fetch("/api/lead", {
       method: "POST",
@@ -413,9 +414,10 @@ if (data) {
       }),
     });
   } catch (err) {
+    // non-blocking; we already showed results
     console.error("Failed to save lead to Airtable:", err);
   }
-}
+};
   /** Renderers */
   const renderButtons = (opts: { label: string; value: string }[], id: Single) => (
     <div className="grid">
