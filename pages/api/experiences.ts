@@ -11,7 +11,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Reads the api_public view of your Experiences table
-    const url = `${AIRTABLE}/${BASE}/Experiences?view=api_public&pageSize=10`;
+  const url = `${AIRTABLE}/${BASE}/Experiences?pageSize=1`;
+
 
     const r = await fetch(url, {
       headers: { Authorization: `Bearer ${TOKEN}` },
