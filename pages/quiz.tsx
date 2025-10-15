@@ -390,7 +390,23 @@ export default function QuizPage() {
       setSubmitting(false);
     }
   };
-
+// Save the quiz lead to Airtable (after we have results)
+if (data) {
+  try {
+    await fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: state.name,
+        quiz: state,
+        selectedIds: (Array.isArray(data) ? data : data.results || []).map((r: any) => r.id),
+        payload,
+      }),
+    });
+  } catch (err) {
+    console.error("Failed to save lead to Airtable:", err);
+  }
+}
   /** Renderers */
   const renderButtons = (opts: { label: string; value: string }[], id: Single) => (
     <div className="grid">
