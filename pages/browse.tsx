@@ -1,10 +1,11 @@
+// pages/browse.tsx
 import { useEffect, useState } from "react";
 
-type Exp = {
+type Item = {
   id: string;
   title: string;
-  format: string;
-  cuisine: string;
+  format?: string;
+  cuisine?: string;
   vibe?: string[];
   minPrice?: number;
   maxPrice?: number;
@@ -12,54 +13,44 @@ type Exp = {
 };
 
 export default function Browse() {
-  const [data, setData] = useState<Exp[]>([]);
+  const [items, setItems] = useState<Item[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch("/api/experiences");
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const json = await r.json();
-        setData(json);
-      } catch (e: any) {
-        setErr(e.message || "Unknown error");
+        const res = await fetch("/api/experiences");
+        const data = await res.json();
+        // data should be { items: [...] } if you wrapped it; otherwise adjust
+        const list: Item[] = data.items || data.records || data || [];
+        setItems(list);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  if (loading) return <main className="page"><p>Loading…</p></main>;
-  if (err) return <main className="page"><p>Error: {err}</p></main>;
-
   return (
-    <main className="page">
+    <div style={{ maxWidth: 900, margin: "40px auto", padding: "0 16px", color: "#eee", fontFamily: "system-ui" }}>
       <h1>Browse experiences</h1>
-      <p>Showing {data.length}</p>
-      <ul className="grid">
-        {data.map(x => (
-          <li key={x.id} className="card">
-            <h3>{x.title}</h3>
-            <p>{x.format} · {x.cuisine}</p>
-            {x.vibe?.length ? <p>Vibe: {x.vibe.join(", ")}</p> : null}
-            {(x.minPrice || x.maxPrice) && (
-              <p>
-                ${x.minPrice ?? "?"}
-                {x.maxPrice ? `–$${x.maxPrice}` : ""} pp
-              </p>
+      {loading && <p>Loading…</p>}
+      {!loading && !items?.length && <p>No items found.</p>}
+      <div style={{ display: "grid", gap: 12 }}>
+        {items?.map((r) => (
+          <div key={r.id} style={{ border: "1px solid #333", borderRadius: 12, padding: 16, background: "#0f0f0f" }}>
+            <h3 style={{ margin: 0 }}>{r.title}</h3>
+            <p style={{ margin: "6px 0", opacity: 0.85 }}>
+              {r.format ? `${r.format}` : ""}
+              {r.cuisine ? ` · ${r.cuisine}` : ""}
+              {r.vibe && r.vibe.length ? ` · ${r.vibe.join(", ")}` : ""}
+            </p>
+            {typeof r.minPrice === "number" && typeof r.maxPrice === "number" && (
+              <p style={{ margin: "4px 0", opacity: 0.85 }}>${r.minPrice}–${r.maxPrice} pp</p>
             )}
-            {x.description ? <p className="muted">{x.description}</p> : null}
-          </li>
+            {r.description && <p style={{ margin: "8px 0 0", opacity: 0.7 }}>{r.description}</p>}
+          </div>
         ))}
-      </ul>
-      <style jsx>{`
-        .page { padding: 2rem; max-width: 960px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 16px; padding: 0; list-style: none; }
-        .card { border: 1px solid #333; border-radius: 12px; padding: 16px; background: #111; }
-        .muted { opacity: 0.75; }
-      `}</style>
-    </main>
+      </div>
+    </div>
   );
 }
