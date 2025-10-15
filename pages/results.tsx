@@ -46,7 +46,7 @@ export default function ResultsPage() {
       {!loading && !error && items.length === 0 && <p>No results found.</p>}
       <div className="list">
         {items.map((exp) => (
-          <ExperienceCard key={exp.id} experience={exp as any} />
+          <ExperienceCard key={exp.id} exp={exp as any} />
         ))}
       </div>
 
