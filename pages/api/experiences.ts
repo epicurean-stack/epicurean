@@ -1,33 +1,30 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const AIRTABLE = (process.env.AIRTABLE_URL || "").replace(/\/$/, "");
+  const BASE = process.env.AIRTABLE_BASE_ID;
+  const TOKEN = process.env.AIRTABLE_TOKEN;
+
   try {
-    const AIRTABLE = process.env.AIRTABLE_URL;
-    const BASE = process.env.AIRTABLE_BASE_ID;
-    const TOKEN = process.env.AIRTABLE_TOKEN;
-
-    if (!AIRTABLE || !BASE || !TOKEN) {
-      return res.status(500).json({ error: 'Missing Airtable environment variables' });
-    }
-
-    // Reads the api_public view of your Experiences table
-  const url = `${AIRTABLE}/${BASE}/Experiences?pageSize=1`;
-
-
-    const r = await fetch(url, {
+    const response = await fetch(`${AIRTABLE}/${BASE}/Experiences?pageSize=50`, {
       headers: { Authorization: `Bearer ${TOKEN}` },
     });
+    const data = await response.json();
 
-    if (!r.ok) {
-      const text = await r.text();
-      return res.status(r.status).json({ error: `Airtable ${r.status}`, detail: text });
-    }
+    // Map to simplified structure
+    const clean = (data.records || []).map((r: any) => ({
+      id: r.id,
+      title: r.fields["Title"],
+      format: r.fields["Format"],
+      cuisine: r.fields["Cuisine Focus"],
+      vibe: r.fields["Vibe"],
+      minPrice: r.fields["Price Per Person (Min)"],
+      maxPrice: r.fields["Price Per Person (Max)"],
+      description: r.fields["Description"],
+    }));
 
-    const data = await r.json();
-    res.status(200).json(data);
-  } catch (e: any) {
-    res.status(500).json({ error: e.message || 'Unknown error' });
+    return res.status(200).json(clean);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "Unknown error" });
   }
 }
-
-
