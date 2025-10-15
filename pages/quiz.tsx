@@ -1,4 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/router";
+// ...
+export default function QuizPage() {
+  const router = useRouter();
+  // ...
 
 /** ---------------------------
  *  Types
@@ -290,43 +294,62 @@ export default function QuizPage() {
   }, [step, state]);
 
   const handleSubmit = async () => {
-    try {
-      setSubmitting(true);
-      setError(null);
-      setResults(null);
+  try {
+    setSubmitting(true);
+    setError(null);
+    setResults(null);
 
-      const payload = {
-        // exact keys your /api/recommend understands
-        mode: state.location === "home" ? "Home" : "Out",
-        group: mapGroup(state.group),
-        vibe: mapVibe(state.vibe),
-        tone: mapExperienceTagsToTone(state.experienceTags),
-        flavour: mapFlavour(state.flavourProfile),
-        budget_pp: state.budget_pp ?? 100,
-        party_size: mapGroupSize(state.group),
-        adventure: mapAdventure(state.adventureLevel),
-        involvement: mapInvolvement(state.involvement),
-        hard_nos: mapRestrictions(state.restrictions),
-        explain: false,
-      };
+    const payload = {
+      mode: state.location === "home" ? "Home" : "Out",
+      group: mapGroup(state.group),
+      vibe: mapVibe(state.vibe),
+      tone: mapExperienceTagsToTone(state.experienceTags),
+      flavour: mapFlavour(state.flavourProfile),
+      budget_pp: state.budget_pp ?? 100,
+      party_size: mapGroupSize(state.group),
+      adventure: mapAdventure(state.adventureLevel),
+      involvement: mapInvolvement(state.involvement),
+      hard_nos: mapRestrictions(state.restrictions),
+      explain: false,
+    };
 
-      const r = await fetch("/api/recommend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    const r = await fetch("/api/recommend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data?.error || "Failed to get results");
 
-      const data = await r.json();
-      if (!r.ok) throw new Error(data?.error || "Failed to get results");
+    const list = Array.isArray(data) ? data : (data.results || data);
+    const ids = list.map((x: any) => x.id || x.recordId || x.fields?.id || x?.fields?.["Experience ID"]).filter(Boolean);
 
-      // supports either {results: [...] } shape or a raw array
-      setResults(Array.isArray(data) ? data : data.results || data);
-    } catch (e: any) {
-      setError(e.message || "Unknown error");
-    } finally {
-      setSubmitting(false);
+    // Fire-and-forget lead save (don’t block UX)
+    fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: state.name || "",
+        quiz: state,
+        selectedIds: ids,
+        payload,
+      }),
+    }).catch(() => { /* ignore */ });
+
+    // Redirect to the dedicated results page
+    if (ids.length) {
+      router.push(`/results?ids=${encodeURIComponent(ids.join(","))}`);
+      return;
     }
-  };
+
+    // Fallback: inline render if we somehow have no ids
+    setResults(list);
+  } catch (e: any) {
+    setError(e.message || "Unknown error");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   /** Renderers */
   const renderButtons = (opts: { label: string; value: string }[], id: Single) => (
