@@ -27,7 +27,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       SelectedExperienceIds: Array.isArray(selectedIds) ? selectedIds.join(",") : "",
       BudgetPP: payload?.budget_pp ?? null,
       Group: payload?.group ?? null,
-      CreatedAt: new Date().toISOString(),
     };
 
     const r = await fetch(url, {
