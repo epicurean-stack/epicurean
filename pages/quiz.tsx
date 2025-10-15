@@ -1,156 +1,679 @@
-// pages/quiz.tsx
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-type Result = {
-  id: string;
-  title: string;
-  format?: string;
-  cuisine?: string;
-  vibe?: string[];
-  minPrice?: number;
-  maxPrice?: number;
-  description?: string;
+/** ---------------------------
+ *  Types
+ *  --------------------------*/
+type Single =
+  | "vibe"
+  | "group"
+  | "location"
+  | "foodType"
+  | "involvement"
+  | "flavourProfile"
+  | "budget"
+  | "adventureLevel"
+  | "animalType";
+
+type Multi = "experienceTags" | "restrictions";
+
+type QuizState = {
+  name?: string;
+  vibe?: string;
+  group?: string;
+  location?: string;
+  foodType?: string;
+  involvement?: string;
+  experienceTags?: string[];
+  flavourProfile?: string;
+  budget_pp?: number; // send as number to the API
+  adventureLevel?: string;
+  restrictions?: string[];
+  animalType?: string;
 };
 
+type Step =
+  | {
+      id: "name";
+      type: "text";
+      title: string;
+      subtitle?: string;
+      placeholder?: string;
+    }
+  | {
+      id: Single;
+      type: "single";
+      title: string;
+      subtitle?: string;
+      options: { label: string; value: string }[];
+      autoAdvance?: boolean; // default true
+    }
+  | {
+      id: Multi;
+      type: "multi";
+      title: string;
+      subtitle?: string;
+      options: { label: string; value: string }[];
+      min?: number;
+      max?: number;
+    };
+
+/** ---------------------------
+ *  Step configuration
+ *  --------------------------*/
+const STEPS: Step[] = [
+  {
+    id: "name",
+    type: "text",
+    title: "Let's start on a first-name basis.",
+    subtitle: "What should we call you?",
+    placeholder: "Type your name",
+  },
+  {
+    id: "vibe",
+    type: "single",
+    title: "What kind of vibe are you going for?",
+    options: [
+      { label: "A cosy night in", value: "cosy" },
+      { label: "A big night out", value: "bigNightOut" },
+      { label: "An outdoor adventure", value: "adventure" },
+      { label: "A chance to learn something new", value: "learnSomething" },
+      { label: "Surprise me", value: "surprise" },
+    ],
+  },
+  {
+    id: "group",
+    type: "single",
+    title: "Who are you planning to gather with?",
+    options: [
+      { label: "Just me", value: "solo" },
+      { label: "Date night", value: "date" },
+      { label: "A group of friends", value: "friends" },
+      { label: "Family", value: "family" },
+      { label: "Work Crew", value: "work" },
+    ],
+  },
+  {
+    id: "location",
+    type: "single",
+    title: "Where do you want it to happen?",
+    options: [
+      { label: "Out and about", value: "out" },
+      { label: "At home", value: "home" },
+      { label: "Online", value: "online" },
+      { label: "Anywhere’s fine", value: "anywhere" },
+    ],
+  },
+  {
+    id: "foodType",
+    type: "single",
+    title: "What sounds tastiest?",
+    options: [
+      { label: "A delicious meal", value: "meal" },
+      { label: "A food-based experience", value: "foodExperience" },
+      { label: "A boozy tasting session", value: "tasting" },
+      { label: "Surprise me", value: "surprise" },
+    ],
+  },
+  {
+    id: "involvement",
+    type: "single",
+    title: "How involved do you want to be?",
+    options: [
+      { label: "I want to learn how to do it myself", value: "learn" },
+      { label: "I want to watch someone do it for me", value: "watch" },
+      { label: "I want to do it collaboratively", value: "collaborate" },
+      { label: "Anything goes", value: "anything" },
+    ],
+  },
+  {
+    id: "experienceTags",
+    type: "multi",
+    title: "Describe your perfect experience",
+    subtitle: "Pick 2–3",
+    options: [
+      { label: "Relaxed", value: "relaxed" },
+      { label: "Social", value: "social" },
+      { label: "Educational", value: "educational" },
+      { label: "Adventurous", value: "adventurous" },
+      { label: "Unique", value: "unique" },
+      { label: "Active", value: "active" },
+      { label: "Luxurious", value: "luxurious" },
+      { label: "Romantic", value: "romantic" },
+      { label: "Quirky", value: "quirky" },
+      { label: "Cultural", value: "cultural" },
+    ],
+    min: 2,
+    max: 3,
+  },
+  {
+    id: "flavourProfile",
+    type: "single",
+    title: "Imagine your perfect bite of food. How would you describe it?",
+    options: [
+      { label: "Bold & Rich", value: "boldRich" },
+      { label: "Fresh & Zesty", value: "freshZesty" },
+      { label: "Sweet & Indulgent", value: "sweetIndulgent" },
+      { label: "Savoury & Earthy", value: "savouryEarthy" },
+      { label: "Herbaceous", value: "herbaceous" },
+      { label: "Not sure", value: "unsure" },
+    ],
+  },
+  {
+    id: "budget",
+    type: "single",
+    title: "What's your budget sweet spot per person?",
+    options: [
+      { label: "< $50", value: "<50" },
+      { label: "$50–$100", value: "50-100" },
+      { label: "$100–$200", value: "100-200" },
+      { label: "$200+", value: "200+" },
+    ],
+  },
+  {
+    id: "adventureLevel",
+    type: "single",
+    title:
+      "On a scale of Bubble Bath to Whitewater Raft, how adventurous are you and your group?",
+    options: [
+      { label: "Stick to what I know", value: "low" },
+      { label: "I like to try new things, but nothing too crazy", value: "medium" },
+      { label: "I’m up for anything!", value: "high" },
+      { label: "Not sure", value: "unsure" },
+    ],
+  },
+  {
+    id: "restrictions",
+    type: "multi",
+    title: "Any hard no’s we should know about?",
+    options: [
+      { label: "No alcohol", value: "noAlcohol" },
+      { label: "Must be vegan / veggie friendly", value: "veganOnly" },
+      { label: "No outdoor activities", value: "noOutdoor" },
+      { label: "Open to anything", value: "open" },
+    ],
+    min: 0,
+    max: 3,
+  },
+  {
+    id: "animalType",
+    type: "single",
+    title: "Finally, pick an animal that represents you and your group",
+    options: [
+      { label: "Chill Cats", value: "chillCats" },
+      { label: "Curious Foxes", value: "curiousFoxes" },
+      { label: "Party Parrots", value: "partyParrots" },
+      { label: "Explorer Bears", value: "explorerBears" },
+      { label: "Wise Owls", value: "wiseOwls" },
+      { label: "Bold Lions", value: "boldLions" },
+      { label: "Playful Penguins", value: "playfulPenguins" },
+      { label: "Creative Octopi", value: "creativeOctopi" },
+    ],
+  },
+];
+
+/** ---------------------------
+ *  Helpers
+ *  --------------------------*/
+const budgetToNumber = (v?: string): number | undefined => {
+  if (!v) return;
+  switch (v) {
+    case "<50":
+      return 40;
+    case "50-100":
+      return 80;
+    case "100-200":
+      return 150;
+    case "200+":
+      return 250;
+    default:
+      return;
+  }
+};
+
+const clamp = (n: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, n));
+
+/** ---------------------------
+ *  UI
+ *  --------------------------*/
 export default function QuizPage() {
-  const [vibe, setVibe] = useState<string[]>([]);
-  const [budgetPP, setBudgetPP] = useState<number>(110);
-  const [loading, setLoading] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [state, setState] = useState<QuizState>({});
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<Result[] | null>(null);
+  const [results, setResults] = useState<any[] | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const toggleVibe = (v: string) => {
-    setVibe((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
-  };
+  const step = STEPS[stepIndex];
+  const total = STEPS.length;
+  const progress = Math.round(((stepIndex + 1) / total) * 100);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setResults(null);
-    try {
-      const res = await fetch("/api/recommend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          // keep payload minimal for now
-          vibe,
-          budget_pp: budgetPP,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Request failed");
-      setResults(data?.results || []);
-    } catch (err: any) {
-      setError(err?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+  // focus text input when it shows
+  useEffect(() => {
+    if (step?.type === "text") inputRef.current?.focus();
+  }, [stepIndex]);
+
+  const canGoBack = stepIndex > 0;
+  const isLast = stepIndex === total - 1;
+
+  /** Handlers */
+  const go = (dir: 1 | -1) => setStepIndex((i) => clamp(i + dir, 0, total - 1));
+
+  const setSingle = (id: Single, value: string, autoAdvance = true) => {
+    setState((s) => {
+      const next: QuizState = { ...s };
+      if (id === "budget") next.budget_pp = budgetToNumber(value);
+      else (next as any)[id] = value;
+      return next;
+    });
+    if (autoAdvance) {
+      // tiny delay for nicer UX
+      setTimeout(() => (isLast ? handleSubmit() : go(1)), 120);
     }
   };
 
-  return (
-    <div style={{ maxWidth: 820, margin: "40px auto", padding: "0 16px", color: "#eee", fontFamily: "system-ui" }}>
-      <h1 style={{ marginBottom: 8 }}>Find your perfect experience</h1>
-      <p style={{ opacity: 0.8, marginBottom: 24 }}>
-        Tell us a little about your vibe and budget. We’ll suggest the best five.
-      </p>
+  const toggleMulti = (id: Multi, value: string) => {
+    setState((s) => {
+      const current = new Set([...(s[id] as string[] | undefined) || []]);
+      if (current.has(value)) current.delete(value);
+      else current.add(value);
+      return { ...s, [id]: Array.from(current) };
+    });
+  };
 
-      <form onSubmit={submit} style={{ background: "#111", border: "1px solid #333", borderRadius: 12, padding: 16 }}>
-        <label style={{ display: "block", marginBottom: 12, fontWeight: 600 }}>Vibe</label>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-          {["Cosy", "LearnSomething", "BigNightOut", "Romantic", "Surprise"].map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => toggleVibe(v)}
-              style={{
-                padding: "8px 12px",
-                borderRadius: 999,
-                border: "1px solid #333",
-                background: vibe.includes(v) ? "#444" : "transparent",
-                color: "#eee",
-                cursor: "pointer",
-              }}
-            >
-              {v}
-            </button>
-          ))}
-        </div>
+  const canAdvanceFromMulti = useMemo(() => {
+    if (step?.type !== "multi") return false;
+    const picked = (state[step.id] as string[] | undefined) || [];
+    const min = step.min ?? 0;
+    const max = step.max ?? 999;
+    return picked.length >= min && picked.length <= max;
+  }, [step, state]);
 
-        <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-          Budget per person (AUD)
-        </label>
-        <input
-          type="number"
-          value={budgetPP}
-          onChange={(e) => setBudgetPP(Number(e.target.value))}
-          min={20}
-          max={500}
-          step={5}
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            borderRadius: 10,
-            border: "1px solid #333",
-            background: "#0c0c0c",
-            color: "#eee",
-            marginBottom: 20,
-          }}
-        />
+  const handleSubmit = async () => {
+    try {
+      setSubmitting(true);
+      setError(null);
+      setResults(null);
 
+      const payload = {
+        // exact keys your /api/recommend understands
+        mode: state.location === "home" ? "Home" : "Out",
+        group: mapGroup(state.group),
+        vibe: mapVibe(state.vibe),
+        tone: mapExperienceTagsToTone(state.experienceTags),
+        flavour: mapFlavour(state.flavourProfile),
+        budget_pp: state.budget_pp ?? 100,
+        party_size: mapGroupSize(state.group),
+        adventure: mapAdventure(state.adventureLevel),
+        involvement: mapInvolvement(state.involvement),
+        hard_nos: mapRestrictions(state.restrictions),
+        explain: false,
+      };
+
+      const r = await fetch("/api/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await r.json();
+      if (!r.ok) throw new Error(data?.error || "Failed to get results");
+
+      // supports either {results: [...] } shape or a raw array
+      setResults(Array.isArray(data) ? data : data.results || data);
+    } catch (e: any) {
+      setError(e.message || "Unknown error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  /** Renderers */
+  const renderButtons = (opts: { label: string; value: string }[], id: Single) => (
+    <div className="grid">
+      {opts.map((o) => (
         <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: "12px 16px",
-            borderRadius: 12,
-            border: "1px solid #2b6",
-            background: "#2b6",
-            color: "#fff",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
+          key={o.value}
+          onClick={() => setSingle(id, o.value, true)}
+          className="btn"
         >
-          {loading ? "Finding great options…" : "Show my matches"}
+          {o.label}
         </button>
-      </form>
-
-      {error && (
-        <p style={{ color: "#f66", marginTop: 16 }}>
-          {error}
-        </p>
-      )}
-
-      {results && (
-        <>
-          <h2 style={{ marginTop: 28, marginBottom: 8 }}>Your recommendations</h2>
-          <div style={{ display: "grid", gap: 12 }}>
-            {results.map((r) => (
-              <div
-                key={r.id}
-                style={{ border: "1px solid #333", borderRadius: 12, padding: 16, background: "#0f0f0f" }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <h3 style={{ margin: 0 }}>{r.title}</h3>
-                </div>
-                <p style={{ margin: "6px 0", opacity: 0.85 }}>
-                  {r.format ? `${r.format}` : ""}
-                  {r.cuisine ? ` · ${r.cuisine}` : ""}
-                  {r.vibe && r.vibe.length ? ` · ${r.vibe.join(", ")}` : ""}
-                </p>
-                {typeof r.minPrice === "number" && typeof r.maxPrice === "number" && (
-                  <p style={{ margin: "4px 0", opacity: 0.85 }}>
-                    ${r.minPrice}–${r.maxPrice} pp
-                  </p>
-                )}
-                {r.description && (
-                  <p style={{ margin: "8px 0 0", opacity: 0.7 }}>{r.description}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+      ))}
     </div>
   );
+
+  const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
+    const picked = new Set([...(state[id] as string[] | undefined) || []]);
+    const toggle = (v: string) => toggleMulti(id, v);
+
+    return (
+      <>
+        <div className="grid">
+          {opts.map((o) => {
+            const active = picked.has(o.value);
+            return (
+              <button
+                key={o.value}
+                onClick={() => toggle(o.value)}
+                className={`btn ${active ? "active" : ""}`}
+                aria-pressed={active}
+              >
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="actions">
+          {canGoBack && (
+            <button className="link" onClick={() => go(-1)} type="button">
+              Back
+            </button>
+          )}
+          <button
+            className="primary"
+            disabled={!canAdvanceFromMulti}
+            onClick={() => (isLast ? handleSubmit() : go(1))}
+            type="button"
+          >
+            {isLast ? "See your matches" : "Next"}
+          </button>
+        </div>
+      </>
+    );
+  };
+
+  /** Final UI */
+  return (
+    <main className="wrap">
+      <div className="progress">
+        <div className="bar" style={{ width: `${progress}%` }} />
+      </div>
+
+      {!results && (
+        <section className="card">
+          {step.type === "text" && (
+            <>
+              <h1>{step.title}</h1>
+              {step.subtitle && <p className="sub">{step.subtitle}</p>}
+              <input
+                ref={inputRef}
+                className="input"
+                placeholder={step.placeholder}
+                defaultValue={state.name || ""}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const name = (e.target as HTMLInputElement).value.trim();
+                    setState((s) => ({ ...s, name }));
+                    go(1);
+                  }
+                }}
+                onBlur={(e) =>
+                  setState((s) => ({ ...s, name: e.target.value.trim() }))
+                }
+              />
+              <div className="actions">
+                {canGoBack && (
+                  <button className="link" onClick={() => go(-1)}>
+                    Back
+                  </button>
+                )}
+                <button
+                  className="primary"
+                  onClick={() => go(1)}
+                  disabled={!state.name}
+                >
+                  Continue
+                </button>
+              </div>
+            </>
+          )}
+
+          {step.type === "single" && (
+            <>
+              <h1>{step.title}</h1>
+              {step.subtitle && <p className="sub">{step.subtitle}</p>}
+              {renderButtons(step.options, step.id)}
+              {canGoBack && (
+                <div className="actions">
+                  <button className="link" onClick={() => go(-1)}>
+                    Back
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {step.type === "multi" && (
+            <>
+              <h1>{step.title}</h1>
+              {step.subtitle && <p className="sub">{step.subtitle}</p>}
+              {renderMulti(step.options, step.id)}
+            </>
+          )}
+        </section>
+      )}
+
+      {submitting && (
+        <section className="card">
+          <h1>Finding your matches…</h1>
+          <p className="sub">We’re searching Epicurean experiences for you.</p>
+        </section>
+      )}
+
+      {error && !submitting && (
+        <section className="card">
+          <h1>Something went wrong</h1>
+          <p className="sub">{error}</p>
+          <button className="primary" onClick={() => setError(null)}>
+            Try again
+          </button>
+        </section>
+      )}
+
+      {results && !submitting && (
+        <section className="card">
+          <h1>Your recommendations</h1>
+          <ul className="list">
+            {results.map((r: any, i: number) => (
+              <li key={r?.id || i} className="result">
+                <div className="title">{r?.title || r?.fields?.Title || "Untitled Experience"}</div>
+                <div className="meta">
+                  <span>
+                    {r?.format || r?.fields?.Format} · {r?.cuisine || r?.fields?.Cuisine_Focus}
+                  </span>
+                </div>
+                <div className="desc">
+                  {r?.description || r?.fields?.Description || "—"}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="actions">
+            <button className="link" onClick={() => setResults(null)}>
+              Restart quiz
+            </button>
+          </div>
+        </section>
+      )}
+
+      <style jsx>{`
+        .wrap {
+          max-width: 820px;
+          margin: 40px auto;
+          padding: 0 16px;
+        }
+        .progress {
+          height: 6px;
+          background: #1f2937;
+          border-radius: 999px;
+          overflow: hidden;
+          margin-bottom: 16px;
+        }
+        .bar {
+          height: 100%;
+          background: #10b981;
+          transition: width 220ms ease;
+        }
+        .card {
+          background: #111318;
+          border: 1px solid #2a2f3a;
+          border-radius: 16px;
+          padding: 28px;
+        }
+        h1 {
+          font-size: 28px;
+          line-height: 1.2;
+          margin: 0 0 6px;
+        }
+        .sub {
+          opacity: 0.7;
+          margin: 0 0 18px;
+        }
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 12px;
+        }
+        .btn {
+          width: 100%;
+          text-align: left;
+          background: #0f1217;
+          border: 1px solid #2a2f3a;
+          border-radius: 14px;
+          padding: 16px 18px;
+          transition: transform 120ms ease, border-color 120ms ease;
+        }
+        .btn:hover {
+          border-color: #4b5563;
+          transform: translateY(-1px);
+        }
+        .btn.active {
+          border-color: #10b981;
+          box-shadow: inset 0 0 0 1px #10b98133;
+        }
+        .input {
+          width: 100%;
+          background: #0f1217;
+          border: 1px solid #2a2f3a;
+          border-radius: 12px;
+          padding: 14px 16px;
+          color: #fff;
+          margin-bottom: 16px;
+        }
+        .actions {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 14px;
+          gap: 12px;
+        }
+        .link {
+          background: transparent;
+          border: none;
+          color: #9ca3af;
+          padding: 10px 0;
+        }
+        .primary {
+          background: #10b981;
+          color: #00100b;
+          border: none;
+          border-radius: 12px;
+          padding: 12px 16px;
+          min-width: 160px;
+          font-weight: 600;
+        }
+        .primary:disabled {
+          opacity: 0.5;
+        }
+        .list {
+          list-style: none;
+          padding: 0;
+          margin: 10px 0 0;
+          display: grid;
+          gap: 12px;
+        }
+        .result {
+          border: 1px solid #2a2f3a;
+          border-radius: 12px;
+          padding: 14px;
+          background: #0f1217;
+        }
+        .title {
+          font-weight: 600;
+          margin-bottom: 4px;
+        }
+        .meta {
+          opacity: 0.7;
+          font-size: 14px;
+          margin-bottom: 8px;
+        }
+        .desc {
+          opacity: 0.9;
+        }
+      `}</style>
+    </main>
+  );
+}
+
+/** ---------------------------
+ *  Mapping helpers (naive)
+ *  These translate quiz picks to the shapes your API understands today.
+ *  You can refine these anytime without touching the UI.
+ *  --------------------------*/
+function mapGroup(group?: string) {
+  switch (group) {
+    case "solo":
+      return "Solo";
+    case "date":
+      return "DateNight";
+    case "friends":
+      return "Friends";
+    case "family":
+      return "Family";
+    case "work":
+      return "WorkCrew";
+    default:
+      return "Friends";
+  }
+}
+function mapVibe(v?: string) {
+  return v ? [v] : [];
+}
+function mapExperienceTagsToTone(tags?: string[]) {
+  return tags && tags.length ? tags : [];
+}
+function mapFlavour(f?: string) {
+  return f ? [f] : [];
+}
+function mapGroupSize(group?: string) {
+  if (group === "solo") return 1;
+  if (group === "date") return 2;
+  return 4;
+}
+function mapAdventure(v?: string) {
+  if (v === "low") return 1;
+  if (v === "medium") return 2;
+  if (v === "high") return 3;
+  return 2;
+}
+function mapInvolvement(v?: string) {
+  switch (v) {
+    case "learn":
+      return "LearnHandsOn";
+    case "watch":
+      return "WatchAndBeServed";
+    case "collaborate":
+      return "Collaborative";
+    default:
+      return "Anything";
+  }
+}
+function mapRestrictions(r?: string[]) {
+  if (!r || !r.length || r.includes("open")) return [];
+  const out: string[] = [];
+  if (r.includes("noAlcohol")) out.push("No alcohol");
+  if (r.includes("veganOnly")) out.push("Must be vegan");
+  if (r.includes("noOutdoor")) out.push("No outdoor activities");
+  return out;
 }
