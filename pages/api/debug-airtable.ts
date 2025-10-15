@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const BASE = process.env.AIRTABLE_BASE_ID || "";
   const TOKEN = process.env.AIRTABLE_TOKEN || "";
 
-  const url = `${AIRTABLE}/${BASE}/Experiences?view=api_public&pageSize=1`;
+  const url = `${AIRTABLE}/${BASE}/Experiences?pageSize=1`;
 
   try {
     const r = await fetch(url, {
