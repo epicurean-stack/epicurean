@@ -2,23 +2,29 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const AIRTABLE = process.env.AIRTABLE_URL;
-  const BASE = process.env.AIRTABLE_BASE_ID;
-  const TOKEN = process.env.AIRTABLE_TOKEN;
+  const AIRTABLE = process.env.AIRTABLE_URL || "";
+  const BASE = process.env.AIRTABLE_BASE_ID || "";
+  const TOKEN = process.env.AIRTABLE_TOKEN || "";
 
   const url = `${AIRTABLE}/${BASE}/Experiences?view=api_public&pageSize=1`;
 
   try {
-    const r = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
+    const r = await fetch(url, {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    });
     const text = await r.text();
     return res.status(r.status).json({
       status: r.status,
       url,
+      env: {
+        has_url: !!AIRTABLE,
+        has_base: !!BASE,
+        token_len: TOKEN?.length ?? 0,
+        base_len: BASE?.length ?? 0,
+      },
       detail: text,
-      env: { has_url: !!AIRTABLE, has_base: !!BASE, token_len: TOKEN?.length ?? 0 },
     });
   } catch (e: any) {
     return res.status(500).json({ error: e?.message || "Unknown error" });
   }
 }
-// redeploy test
