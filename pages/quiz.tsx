@@ -1,7 +1,6 @@
 // pages/quiz.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { AnimatePresence, motion } from "framer-motion";
 
 /** ---------------------------
  *  Types
@@ -493,133 +492,9 @@ export default function QuizPage() {
         <div className="bar" style={{ width: `${progress}%` }} />
       </div>
 
-      <AnimatePresence mode="wait">
-        {!results && !submitting && !error && (
-          <StepCard>
-            {step.type === "text" && (
-              <>
-                <h1>{step.title}</h1>
-                {step.subtitle && <p className="sub">{step.subtitle}</p>}
-                <input
-                  ref={inputRef}
-                  className="input"
-                  placeholder={step.placeholder}
-                  defaultValue={state.name || ""}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const name = (e.target as HTMLInputElement).value.trim();
-                      setState((s) => ({ ...s, name }));
-                      go(1);
-                    }
-                  }}
-                  onBlur={(e) =>
-                    setState((s) => ({ ...s, name: e.target.value.trim() }))
-                  }
-                />
-                <div className="actions">
-                  {canGoBack && (
-                    <button className="link" onClick={() => go(-1)} type="button">
-                      Back
-                    </button>
-                  )}
-                  <button
-                    className="primary"
-                    onClick={() => go(1)}
-                    disabled={!state.name}
-                    type="button"
-                  >
-                    Continue
-                  </button>
-                </div>
-              </>
-            )}
-
-            {step.type === "single" && (
-              <>
-                <h1>{step.title}</h1>
-                {step.subtitle && <p className="sub">{step.subtitle}</p>}
-                {renderButtons(step.options, step.id)}
-                {canGoBack && (
-                  <div className="actions">
-                    <button className="link" onClick={() => go(-1)} type="button">
-                      Back
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-
-            {step.type === "multi" && (
-              <>
-                <h1>{step.title}</h1>
-                {step.subtitle && <p className="sub">{step.subtitle}</p>}
-                {renderMulti(step.options, step.id)}
-              </>
-            )}
-          </StepCard>
-        )}
-
-        {submitting && (
-          <motion.section
-            className="card"
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <h1>Finding your matches…</h1>
-            <p className="sub">We’re searching Epicurean experiences for you.</p>
-          </motion.section>
-        )}
-
-        {error && !submitting && (
-          <motion.section
-            className="card"
-            key="error"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <h1>Something went wrong</h1>
-            <p className="sub">{error}</p>
-            <button className="primary" onClick={() => setError(null)} type="button">
-              Try again
-            </button>
-          </motion.section>
-        )}
-
-        {results && !submitting && (
-          <motion.section
-            className="card"
-            key="results"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <h1>Your recommendations</h1>
-            <ul className="list">
-              {results.map((r: any, i: number) => (
-                <li key={r?.id || i} className="result">
-                  <div className="title">
-                    {r?.title || r?.fields?.Title || "Untitled Experience"}
-                  </div>
-                  <div className="meta">
-                    <span>
-                      {(r?.format || r?.fields?.Format) ?? "—"} ·{" "}
-                      {(r?.cuisine || r?.fields?.Cuisine_Focus) ?? "—"}
-                    </span>
-                  </div>
-                  <div className="desc">
-                    {r?.description || r?.fields?.Description || "—"}
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <div className="actions">
-              <button className="link" onClick={() => setResults(null)} type="button">
-                Restart quiz
-              </button>
-            </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
+      <div key={stepIndex}>
+  {/* question content */}
+</div>
 
       <style jsx>{`
   /* ------------- Theme tokens ------------- */
