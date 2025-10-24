@@ -595,121 +595,156 @@ export default function QuizPage() {
       )}
 
       <style jsx>{`
-        .wrap {
-          max-width: 820px;
-          margin: 40px auto;
-          padding: 0 16px;
-        }
-        .progress {
-          height: 6px;
-          background: #1f2937;
-          border-radius: 999px;
-          overflow: hidden;
-          margin-bottom: 16px;
-        }
-        .bar {
-          height: 100%;
-          background: #10b981;
-          transition: width 220ms ease;
-        }
-        .card {
-          background: #111318;
-          border: 1px solid #2a2f3a;
-          border-radius: 16px;
-          padding: 28px;
-        }
-        h1 {
-          font-size: 28px;
-          line-height: 1.2;
-          margin: 0 0 6px;
-        }
-        .sub {
-          opacity: 0.7;
-          margin: 0 0 18px;
-        }
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 12px;
-        }
-        .btn {
-          width: 100%;
-          text-align: left;
-          background: #0f1217;
-          border: 1px solid #2a2f3a;
-          border-radius: 14px;
-          padding: 16px 18px;
-          transition: transform 120ms ease, border-color 120ms ease;
-          color: #fff;
-        }
-        .btn:hover {
-          border-color: #4b5563;
-          transform: translateY(-1px);
-        }
-        .btn.active {
-          border-color: #10b981;
-          box-shadow: inset 0 0 0 1px #10b98133;
-        }
-        .input {
-          width: 100%;
-          background: #0f1217;
-          border: 1px solid #2a2f3a;
-          border-radius: 12px;
-          padding: 14px 16px;
-          color: #fff;
-          margin-bottom: 16px;
-        }
-        .actions {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 14px;
-          gap: 12px;
-        }
-        .link {
-          background: transparent;
-          border: none;
-          color: #9ca3af;
-          padding: 10px 0;
-        }
-        .primary {
-          background: #10b981;
-          color: #00100b;
-          border: none;
-          border-radius: 12px;
-          padding: 12px 16px;
-          min-width: 160px;
-          font-weight: 600;
-        }
-        .primary:disabled {
-          opacity: 0.5;
-        }
-        .list {
-          list-style: none;
-          padding: 0;
-          margin: 10px 0 0;
-          display: grid;
-          gap: 12px;
-        }
-        .result {
-          border: 1px solid #2a2f3a;
-          border-radius: 12px;
-          padding: 14px;
-          background: #0f1217;
-          color: #fff;
-        }
-        .title {
-          font-weight: 600;
-          margin-bottom: 4px;
-        }
-        .meta {
-          opacity: 0.7;
-          font-size: 14px;
-          margin-bottom: 8px;
-        }
-        .desc {
-          opacity: 0.9;
-        }
-      `}</style>
+  /* ------------- Theme tokens ------------- */
+  :root {
+    /* current dark theme (fallback) */
+    --bg: #0f1217;
+    --text: #ffffff;
+    --muted: #9ca3af;
+    --border: #2a2f3a;
+    --card: #111318;
+    --accent: #10b981;         /* progress + primary */
+    --accent-contrast: #00100b; /* text on accent */
+    --pill: #0f1217;
+  }
+
+  /* Epicurean light theme to match your site */
+  [data-theme="epicurean"] {
+    --bg: #0e0e0c;              /* page behind the card (subtle very dark/black) */
+    --card: #efe7db;            /* warm parchment card */
+    --text: #0e0e0c;            /* near-black text */
+    --muted: #6f6a60;           /* muted copy */
+    --border: #d1c7b8;          /* warm border */
+    --accent: #0e0e0c;          /* dark button + progress */
+    --accent-contrast: #efe7db; /* text on dark buttons */
+    --pill: #eadfcf;            /* option tiles background */
+  }
+
+  /* ------------- Structure ------------- */
+  .wrap {
+    max-width: 820px;
+    margin: 40px auto;
+    padding: 0 16px;
+    color: var(--text);
+    background: transparent; /* keep page background transparent for iframe */
+  }
+  .progress {
+    height: 6px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width 220ms ease;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  h1 {
+    font-size: 28px;
+    line-height: 1.2;
+    margin: 0 0 6px;
+  }
+  .sub {
+    color: var(--muted);
+    margin: 0 0 18px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: left;
+    background: var(--pill);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+  }
+  .btn:hover {
+    border-color: var(--text);
+    transform: translateY(-1px);
+  }
+  .btn.active {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent), transparent 70%);
+  }
+
+  .input {
+    width: 100%;
+    background: var(--pill);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 14px;
+    gap: 12px;
+  }
+  .link {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .primary {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-width: 160px;
+    font-weight: 600;
+  }
+  .primary:disabled {
+    opacity: 0.5;
+  }
+
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    display: grid;
+    gap: 12px;
+  }
+  .result {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    background: var(--pill);
+  }
+  .title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .desc {
+    color: var(--text);
+    opacity: 0.9;
+  }
+`}</style>
     </main>
   );
 }
