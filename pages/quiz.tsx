@@ -1,6 +1,7 @@
 // pages/quiz.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
+import { AnimatePresence, motion } from "framer-motion";
 
 /** ---------------------------
  *  Types
@@ -331,7 +332,6 @@ export default function QuizPage() {
       return next;
     });
     if (autoAdvance) {
-      // tiny delay for nicer UX
       setTimeout(() => (isLast ? handleSubmit() : go(1)), 120);
     }
   };
@@ -354,70 +354,67 @@ export default function QuizPage() {
   }, [step, state]);
 
   const handleSubmit = async () => {
-  setSubmitting(true);
-  setError(null);
-  setResults(null);
+    setSubmitting(true);
+    setError(null);
+    setResults(null);
 
-  // ---- payload your /api/recommend understands ----
-  const payload = {
-    mode: state.location === "home" ? "Home" : "Out",
-    group: mapGroup(state.group),
-    vibe: mapVibe(state.vibe),
-    tone: mapExperienceTagsToTone(state.experienceTags),
-    flavour: mapFlavour(state.flavourProfile),
-    budget_pp: state.budget_pp ?? 100,
-    party_size: mapGroupSize(state.group),
-    adventure: mapAdventure(state.adventureLevel),
-    involvement: mapInvolvement(state.involvement),
-    hard_nos: mapRestrictions(state.restrictions),
-    explain: false,
+    const payload = {
+      mode: state.location === "home" ? "Home" : "Out",
+      group: mapGroup(state.group),
+      vibe: mapVibe(state.vibe),
+      tone: mapExperienceTagsToTone(state.experienceTags),
+      flavour: mapFlavour(state.flavourProfile),
+      budget_pp: state.budget_pp ?? 100,
+      party_size: mapGroupSize(state.group),
+      adventure: mapAdventure(state.adventureLevel),
+      involvement: mapInvolvement(state.involvement),
+      hard_nos: mapRestrictions(state.restrictions),
+      explain: false,
+    };
+
+    let data: any = null;
+
+    try {
+      const r = await fetch("/api/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      data = await r.json();
+      if (!r.ok) throw new Error(data?.error || "Failed to get results");
+
+      setResults(Array.isArray(data) ? data : data.results || data);
+    } catch (e: any) {
+      setError(e.message || "Unknown error");
+    } finally {
+      setSubmitting(false);
+    }
+
+    // Non-blocking lead save
+    try {
+      const selectedIds =
+        Array.isArray(data)
+          ? data.map((r: any) => r.id)
+          : Array.isArray(data?.results)
+          ? data.results.map((r: any) => r.id)
+          : [];
+
+      await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: state.name,
+          quiz: state,
+          selectedIds,
+          payload,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to save lead to Airtable:", err);
+    }
   };
 
-  // keep data in outer scope so we can use it after the try/catch
-  let data: any = null;
-
-  // ---- fetch recommendations ----
-  try {
-    const r = await fetch("/api/recommend", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    data = await r.json();
-    if (!r.ok) throw new Error(data?.error || "Failed to get results");
-
-    setResults(Array.isArray(data) ? data : data.results || data);
-  } catch (e: any) {
-    setError(e.message || "Unknown error");
-  } finally {
-    setSubmitting(false);
-  }
-
-  // ---- save the quiz lead to Airtable (after we have results) ----
-  try {
-    const selectedIds =
-      Array.isArray(data)
-        ? data.map((r: any) => r.id)
-        : Array.isArray(data?.results)
-        ? data.results.map((r: any) => r.id)
-        : [];
-
-    await fetch("/api/lead", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: state.name,
-        quiz: state,
-        selectedIds,
-        payload,
-      }),
-    });
-  } catch (err) {
-    // non-blocking; we already showed results
-    console.error("Failed to save lead to Airtable:", err);
-  }
-};
   /** Renderers */
   const renderButtons = (opts: { label: string; value: string }[], id: Single) => (
     <div className="grid">
@@ -425,10 +422,10 @@ export default function QuizPage() {
         <button
           key={o.value}
           onClick={() => setSingle(id, o.value, true)}
-          className="btn"
+          className="option"
           type="button"
         >
-          {o.label}
+          <span className="label">{o.label}</span>
         </button>
       ))}
     </div>
@@ -447,11 +444,11 @@ export default function QuizPage() {
               <button
                 key={o.value}
                 onClick={() => toggle(o.value)}
-                className={`btn ${active ? "active" : ""}`}
+                className={`option ${active ? "selected" : ""}`}
                 aria-pressed={active}
                 type="button"
               >
-                {o.label}
+                <span className="label">{o.label}</span>
               </button>
             );
           })}
@@ -476,157 +473,189 @@ export default function QuizPage() {
     );
   };
 
+  const StepCard = ({ children }: { children: React.ReactNode }) => (
+    <motion.section
+      className="card"
+      key={stepIndex}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.25 }}
+    >
+      {children}
+    </motion.section>
+  );
+
   /** Final UI */
   return (
-    <main className="wrap">
+    <main className="wrap" data-theme="epicurean">
       <div className="progress">
         <div className="bar" style={{ width: `${progress}%` }} />
       </div>
 
-      {!results && (
-        <section className="card">
-          {step.type === "text" && (
-            <>
-              <h1>{step.title}</h1>
-              {step.subtitle && <p className="sub">{step.subtitle}</p>}
-              <input
-                ref={inputRef}
-                className="input"
-                placeholder={step.placeholder}
-                defaultValue={state.name || ""}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const name = (e.target as HTMLInputElement).value.trim();
-                    setState((s) => ({ ...s, name }));
-                    go(1);
+      <AnimatePresence mode="wait">
+        {!results && !submitting && !error && (
+          <StepCard>
+            {step.type === "text" && (
+              <>
+                <h1>{step.title}</h1>
+                {step.subtitle && <p className="sub">{step.subtitle}</p>}
+                <input
+                  ref={inputRef}
+                  className="input"
+                  placeholder={step.placeholder}
+                  defaultValue={state.name || ""}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const name = (e.target as HTMLInputElement).value.trim();
+                      setState((s) => ({ ...s, name }));
+                      go(1);
+                    }
+                  }}
+                  onBlur={(e) =>
+                    setState((s) => ({ ...s, name: e.target.value.trim() }))
                   }
-                }}
-                onBlur={(e) =>
-                  setState((s) => ({ ...s, name: e.target.value.trim() }))
-                }
-              />
-              <div className="actions">
-                {canGoBack && (
-                  <button className="link" onClick={() => go(-1)} type="button">
-                    Back
-                  </button>
-                )}
-                <button
-                  className="primary"
-                  onClick={() => go(1)}
-                  disabled={!state.name}
-                  type="button"
-                >
-                  Continue
-                </button>
-              </div>
-            </>
-          )}
-
-          {step.type === "single" && (
-            <>
-              <h1>{step.title}</h1>
-              {step.subtitle && <p className="sub">{step.subtitle}</p>}
-              {renderButtons(step.options, step.id)}
-              {canGoBack && (
+                />
                 <div className="actions">
-                  <button className="link" onClick={() => go(-1)} type="button">
-                    Back
+                  {canGoBack && (
+                    <button className="link" onClick={() => go(-1)} type="button">
+                      Back
+                    </button>
+                  )}
+                  <button
+                    className="primary"
+                    onClick={() => go(1)}
+                    disabled={!state.name}
+                    type="button"
+                  >
+                    Continue
                   </button>
                 </div>
-              )}
-            </>
-          )}
+              </>
+            )}
 
-          {step.type === "multi" && (
-            <>
-              <h1>{step.title}</h1>
-              {step.subtitle && <p className="sub">{step.subtitle}</p>}
-              {renderMulti(step.options, step.id)}
-            </>
-          )}
-        </section>
-      )}
+            {step.type === "single" && (
+              <>
+                <h1>{step.title}</h1>
+                {step.subtitle && <p className="sub">{step.subtitle}</p>}
+                {renderButtons(step.options, step.id)}
+                {canGoBack && (
+                  <div className="actions">
+                    <button className="link" onClick={() => go(-1)} type="button">
+                      Back
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
 
-      {submitting && (
-        <section className="card">
-          <h1>Finding your matches…</h1>
-          <p className="sub">We’re searching Epicurean experiences for you.</p>
-        </section>
-      )}
+            {step.type === "multi" && (
+              <>
+                <h1>{step.title}</h1>
+                {step.subtitle && <p className="sub">{step.subtitle}</p>}
+                {renderMulti(step.options, step.id)}
+              </>
+            )}
+          </StepCard>
+        )}
 
-      {error && !submitting && (
-        <section className="card">
-          <h1>Something went wrong</h1>
-          <p className="sub">{error}</p>
-          <button className="primary" onClick={() => setError(null)} type="button">
-            Try again
-          </button>
-        </section>
-      )}
+        {submitting && (
+          <motion.section
+            className="card"
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h1>Finding your matches…</h1>
+            <p className="sub">We’re searching Epicurean experiences for you.</p>
+          </motion.section>
+        )}
 
-      {results && !submitting && (
-        <section className="card">
-          <h1>Your recommendations</h1>
-          <ul className="list">
-            {results.map((r: any, i: number) => (
-              <li key={r?.id || i} className="result">
-                <div className="title">
-                  {r?.title || r?.fields?.Title || "Untitled Experience"}
-                </div>
-                <div className="meta">
-                  <span>
-                    {(r?.format || r?.fields?.Format) ?? "—"} ·{" "}
-                    {(r?.cuisine || r?.fields?.Cuisine_Focus) ?? "—"}
-                  </span>
-                </div>
-                <div className="desc">
-                  {r?.description || r?.fields?.Description || "—"}
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="actions">
-            <button className="link" onClick={() => setResults(null)} type="button">
-              Restart quiz
+        {error && !submitting && (
+          <motion.section
+            className="card"
+            key="error"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h1>Something went wrong</h1>
+            <p className="sub">{error}</p>
+            <button className="primary" onClick={() => setError(null)} type="button">
+              Try again
             </button>
-          </div>
-        </section>
-      )}
+          </motion.section>
+        )}
+
+        {results && !submitting && (
+          <motion.section
+            className="card"
+            key="results"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h1>Your recommendations</h1>
+            <ul className="list">
+              {results.map((r: any, i: number) => (
+                <li key={r?.id || i} className="result">
+                  <div className="title">
+                    {r?.title || r?.fields?.Title || "Untitled Experience"}
+                  </div>
+                  <div className="meta">
+                    <span>
+                      {(r?.format || r?.fields?.Format) ?? "—"} ·{" "}
+                      {(r?.cuisine || r?.fields?.Cuisine_Focus) ?? "—"}
+                    </span>
+                  </div>
+                  <div className="desc">
+                    {r?.description || r?.fields?.Description || "—"}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="actions">
+              <button className="link" onClick={() => setResults(null)} type="button">
+                Restart quiz
+              </button>
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       <style jsx>{`
   /* ------------- Theme tokens ------------- */
   :root {
-    /* current dark theme (fallback) */
     --bg: #0f1217;
     --text: #ffffff;
     --muted: #9ca3af;
     --border: #2a2f3a;
     --card: #111318;
-    --accent: #10b981;         /* progress + primary */
-    --accent-contrast: #00100b; /* text on accent */
+    --accent: #10b981;
+    --accent-contrast: #00100b;
     --pill: #0f1217;
   }
 
-  /* Epicurean light theme to match your site */
+  /* Epicurean light theme */
   [data-theme="epicurean"] {
-    --bg: #0e0e0c;              /* page behind the card (subtle very dark/black) */
-    --card: #efe7db;            /* warm parchment card */
-    --text: #0e0e0c;            /* near-black text */
-    --muted: #6f6a60;           /* muted copy */
-    --border: #d1c7b8;          /* warm border */
-    --accent: #0e0e0c;          /* dark button + progress */
-    --accent-contrast: #efe7db; /* text on dark buttons */
-    --pill: #eadfcf;            /* option tiles background */
+    --bg: #0e0e0c;              /* page behind card if visible */
+    --card: #efe7db;            /* warm parchment */
+    --text: #0e0e0c;
+    --muted: #6f6a60;
+    --border: #d1c7b8;
+    --accent: #0e0e0c;          /* for buttons/progress */
+    --accent-contrast: #efe7db;
+    --pill: #ffffff;            /* option tiles base */
+    --pill-muted: #eadfcf;      /* subtle hover/selected bg */
+    --shadow: 0 6px 16px rgba(14, 14, 12, 0.12);
+    --shadow-soft: 0 4px 10px rgba(14, 14, 12, 0.08);
   }
 
   /* ------------- Structure ------------- */
   .wrap {
-    max-width: 820px;
+    max-width: 860px;
     margin: 40px auto;
-    padding: 0 16px;
+    padding: 0 16px 40px;
     color: var(--text);
-    background: transparent; /* keep page background transparent for iframe */
+    background: transparent;
   }
   .progress {
     height: 6px;
@@ -643,42 +672,58 @@ export default function QuizPage() {
   .card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px;
+    border-radius: 20px;
+    padding: 34px 28px 28px;
+    box-shadow: var(--shadow-soft);
   }
   h1 {
-    font-size: 28px;
-    line-height: 1.2;
-    margin: 0 0 6px;
+    font-size: 34px;
+    line-height: 1.15;
+    margin: 0 0 10px;
+    letter-spacing: -0.02em;
   }
   .sub {
     color: var(--muted);
-    margin: 0 0 18px;
+    margin: 0 0 24px;
   }
 
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
+    gap: 16px;
   }
 
-  .btn {
-    width: 100%;
-    text-align: left;
+  /* Card-style option */
+  .option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: var(--pill);
     color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 18px;
-    transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 18px;
+    width: 100%;
+    min-height: 96px;
+    text-align: center;
+    box-shadow: var(--shadow-soft);
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+    cursor: pointer;
   }
-  .btn:hover {
+  .option .label {
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .option:hover {
+    transform: translateY(-3px);
     border-color: var(--text);
-    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+    background: var(--pill);
   }
-  .btn.active {
+  .option.selected {
     border-color: var(--accent);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent), transparent 70%);
+    background: var(--pill-muted);
+    box-shadow: var(--shadow);
   }
 
   .input {
@@ -694,27 +739,27 @@ export default function QuizPage() {
   .actions {
     display: flex;
     justify-content: space-between;
-    margin-top: 14px;
+    margin-top: 18px;
     gap: 12px;
   }
   .link {
     background: transparent;
     border: 1px dashed var(--border);
     color: var(--muted);
-    border-radius: 10px;
-    padding: 10px 12px;
+    border-radius: 12px;
+    padding: 10px 14px;
   }
   .primary {
     background: var(--accent);
     color: var(--accent-contrast);
     border: none;
     border-radius: 12px;
-    padding: 12px 16px;
-    min-width: 160px;
-    font-weight: 600;
+    padding: 12px 18px;
+    min-width: 170px;
+    font-weight: 700;
   }
   .primary:disabled {
-    opacity: 0.5;
+    opacity: 0.55;
   }
 
   .list {
