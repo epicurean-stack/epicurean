@@ -67,7 +67,7 @@ const STEPS: Step[] = [
   {
     id: "name",
     type: "text",
-    title: "Let's start on a first-name basis.",
+    title: "Let’s start on a first-name basis.",
     subtitle: "What should we call you?",
     placeholder: "Type your name",
   },
@@ -92,7 +92,7 @@ const STEPS: Step[] = [
       { label: "Date night", value: "date" },
       { label: "A group of friends", value: "friends" },
       { label: "Family", value: "family" },
-      { label: "Work Crew", value: "work" },
+      { label: "Work crew", value: "work" },
     ],
   },
   {
@@ -153,10 +153,10 @@ const STEPS: Step[] = [
     type: "single",
     title: "Imagine your perfect bite of food. How would you describe it?",
     options: [
-      { label: "Bold & Rich", value: "boldRich" },
-      { label: "Fresh & Zesty", value: "freshZesty" },
-      { label: "Sweet & Indulgent", value: "sweetIndulgent" },
-      { label: "Savoury & Earthy", value: "savouryEarthy" },
+      { label: "Bold & rich", value: "boldRich" },
+      { label: "Fresh & zesty", value: "freshZesty" },
+      { label: "Sweet & indulgent", value: "sweetIndulgent" },
+      { label: "Savoury & earthy", value: "savouryEarthy" },
       { label: "Herbaceous", value: "herbaceous" },
       { label: "Not sure", value: "unsure" },
     ],
@@ -164,7 +164,7 @@ const STEPS: Step[] = [
   {
     id: "budget",
     type: "single",
-    title: "What's your budget sweet spot per person?",
+    title: "What’s your budget sweet spot per person?",
     options: [
       { label: "< $50", value: "<50" },
       { label: "$50–$100", value: "50-100" },
@@ -176,10 +176,13 @@ const STEPS: Step[] = [
     id: "adventureLevel",
     type: "single",
     title:
-      "On a scale of Bubble Bath to Whitewater Raft, how adventurous are you and your group?",
+      "On a scale of bubble bath to white-water raft, how adventurous are you and your group?",
     options: [
       { label: "Stick to what I know", value: "low" },
-      { label: "I like to try new things, but nothing too crazy", value: "medium" },
+      {
+        label: "I like to try new things, but nothing too crazy",
+        value: "medium",
+      },
       { label: "I’m up for anything!", value: "high" },
       { label: "Not sure", value: "unsure" },
     ],
@@ -202,14 +205,14 @@ const STEPS: Step[] = [
     type: "single",
     title: "Finally, pick an animal that represents you and your group",
     options: [
-      { label: "Chill Cats", value: "chillCats" },
-      { label: "Curious Foxes", value: "curiousFoxes" },
-      { label: "Party Parrots", value: "partyParrots" },
-      { label: "Explorer Bears", value: "explorerBears" },
-      { label: "Wise Owls", value: "wiseOwls" },
-      { label: "Bold Lions", value: "boldLions" },
-      { label: "Playful Penguins", value: "playfulPenguins" },
-      { label: "Creative Octopi", value: "creativeOctopi" },
+      { label: "Chill cats", value: "chillCats" },
+      { label: "Curious foxes", value: "curiousFoxes" },
+      { label: "Party parrots", value: "partyParrots" },
+      { label: "Explorer bears", value: "explorerBears" },
+      { label: "Wise owls", value: "wiseOwls" },
+      { label: "Bold lions", value: "boldLions" },
+      { label: "Playful penguins", value: "playfulPenguins" },
+      { label: "Creative octopi", value: "creativeOctopi" },
     ],
   },
 ];
@@ -477,10 +480,10 @@ export default function QuizPage() {
     <motion.section
       className="card"
       key={stepIndex}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.25 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.28, ease: "easeOut" }}
     >
       {children}
     </motion.section>
@@ -590,7 +593,7 @@ export default function QuizPage() {
           <motion.section
             className="card"
             key="results"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <h1>Your recommendations</h1>
@@ -598,7 +601,7 @@ export default function QuizPage() {
               {results.map((r: any, i: number) => (
                 <li key={r?.id || i} className="result">
                   <div className="title">
-                    {r?.title || r?.fields?.Title || "Untitled Experience"}
+                    {r?.title || r?.fields?.Title || "Untitled experience"}
                   </div>
                   <div className="meta">
                     <span>
@@ -622,174 +625,261 @@ export default function QuizPage() {
       </AnimatePresence>
 
       <style jsx>{`
-  /* ------------- Theme tokens ------------- */
-  :root {
-    --bg: #0f1217;
-    --text: #ffffff;
-    --muted: #9ca3af;
-    --border: #2a2f3a;
-    --card: #111318;
-    --accent: #10b981;
-    --accent-contrast: #00100b;
-    --pill: #0f1217;
-  }
+        /* ------------- Global background ------------- */
+        :global(body) {
+          background: #050505; /* matches Webflow black hero */
+        }
 
-  /* Epicurean light theme */
-  [data-theme="epicurean"] {
-    --bg: #0e0e0c;              /* page behind card if visible */
-    --card: #efe7db;            /* warm parchment */
-    --text: #0e0e0c;
-    --muted: #6f6a60;
-    --border: #d1c7b8;
-    --accent: #0e0e0c;          /* for buttons/progress */
-    --accent-contrast: #efe7db;
-    --pill: #ffffff;            /* option tiles base */
-    --pill-muted: #eadfcf;      /* subtle hover/selected bg */
-    --shadow: 0 6px 16px rgba(14, 14, 12, 0.12);
-    --shadow-soft: 0 4px 10px rgba(14, 14, 12, 0.08);
-  }
+        /* ------------- Theme tokens ------------- */
+        :root {
+          --bg: #050505;
+          --text: #ffffff;
+          --muted: #9ca3af;
+          --border: #2a2f3a;
+          --card: #111318;
+          --accent: #f5e3c8;
+          --accent-contrast: #16130f;
+          --pill: #0f1217;
+        }
 
-  /* ------------- Structure ------------- */
-  .wrap {
-    max-width: 860px;
-    margin: 40px auto;
-    padding: 0 16px 40px;
-    color: var(--text);
-    background: transparent;
-  }
-  .progress {
-    height: 6px;
-    background: var(--border);
-    border-radius: 999px;
-    overflow: hidden;
-    margin-bottom: 16px;
-  }
-  .bar {
-    height: 100%;
-    background: var(--accent);
-    transition: width 220ms ease;
-  }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 34px 28px 28px;
-    box-shadow: var(--shadow-soft);
-  }
-  h1 {
-    font-size: 34px;
-    line-height: 1.15;
-    margin: 0 0 10px;
-    letter-spacing: -0.02em;
-  }
-  .sub {
-    color: var(--muted);
-    margin: 0 0 24px;
-  }
+        /* Epicurean hybrid theme */
+        [data-theme="epicurean"] {
+          --bg: #050505; /* page background */
+          --card: #efe2cf; /* warm parchment card */
+          --text: #171413;
+          --muted: #7b7062;
+          --border: #d0bfa6;
+          --accent: #171413; /* buttons / progress */
+          --accent-contrast: #f5ebe0;
+          --pill: #ffffff;
+          --pill-muted: #f0dfc7;
+          --shadow: 0 16px 45px rgba(0, 0, 0, 0.55);
+          --shadow-soft: 0 10px 26px rgba(0, 0, 0, 0.32);
+        }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-  }
+        /* ------------- Layout ------------- */
+        .wrap {
+          min-height: 100vh;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 32px 16px 40px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          color: var(--text);
+        }
 
-  /* Card-style option */
-  .option {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--pill);
-    color: var(--text);
-    border: 2px solid var(--border);
-    border-radius: 18px;
-    padding: 22px 18px;
-    width: 100%;
-    min-height: 96px;
-    text-align: center;
-    box-shadow: var(--shadow-soft);
-    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
-    cursor: pointer;
-  }
-  .option .label {
-    font-weight: 700;
-    font-size: 16px;
-  }
-  .option:hover {
-    transform: translateY(-3px);
-    border-color: var(--text);
-    box-shadow: var(--shadow);
-    background: var(--pill);
-  }
-  .option.selected {
-    border-color: var(--accent);
-    background: var(--pill-muted);
-    box-shadow: var(--shadow);
-  }
+        .progress {
+          height: 6px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 999px;
+          overflow: hidden;
+          margin: 0 auto 24px;
+          max-width: 640px;
+        }
 
-  .input {
-    width: 100%;
-    background: var(--pill);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-  }
+        .bar {
+          height: 100%;
+          background: var(--accent);
+          transition: width 220ms ease;
+        }
 
-  .actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 18px;
-    gap: 12px;
-  }
-  .link {
-    background: transparent;
-    border: 1px dashed var(--border);
-    color: var(--muted);
-    border-radius: 12px;
-    padding: 10px 14px;
-  }
-  .primary {
-    background: var(--accent);
-    color: var(--accent-contrast);
-    border: none;
-    border-radius: 12px;
-    padding: 12px 18px;
-    min-width: 170px;
-    font-weight: 700;
-  }
-  .primary:disabled {
-    opacity: 0.55;
-  }
+        .card {
+          background: var(--card);
+          border-radius: 28px;
+          padding: 36px 30px 30px;
+          box-shadow: var(--shadow-soft);
+          border: 1px solid rgba(0, 0, 0, 0.15);
+        }
 
-  .list {
-    list-style: none;
-    padding: 0;
-    margin: 10px 0 0;
-    display: grid;
-    gap: 12px;
-  }
-  .result {
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    background: var(--pill);
-  }
-  .title {
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: var(--text);
-  }
-  .meta {
-    color: var(--muted);
-    font-size: 14px;
-    margin-bottom: 8px;
-  }
-  .desc {
-    color: var(--text);
-    opacity: 0.9;
-  }
-`}</style>
+        h1 {
+          font-size: 40px;
+          line-height: 1.1;
+          margin: 0 0 14px;
+          letter-spacing: -0.03em;
+          text-align: center;
+        }
+
+        .sub {
+          color: var(--muted);
+          margin: 0 0 26px;
+          text-align: center;
+          font-size: 18px;
+        }
+
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+          gap: 18px;
+          margin-top: 8px;
+        }
+
+        /* Big GPD-style option cards */
+        .option {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--pill);
+          color: var(--text);
+          border-radius: 20px;
+          padding: 26px 22px;
+          width: 100%;
+          min-height: 120px;
+          text-align: center;
+          border: 2px solid rgba(23, 20, 19, 0.06);
+          box-shadow: var(--shadow-soft);
+          cursor: pointer;
+          transition:
+            transform 150ms ease,
+            box-shadow 150ms ease,
+            border-color 150ms ease,
+            background 150ms ease;
+        }
+
+        .option .label {
+          font-weight: 700;
+          font-size: 17px;
+          letter-spacing: -0.01em;
+        }
+
+        .option:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow);
+          border-color: rgba(23, 20, 19, 0.3);
+        }
+
+        .option.selected {
+          background: var(--pill-muted);
+          border-color: var(--accent);
+          box-shadow: var(--shadow);
+        }
+
+        .input {
+          width: 100%;
+          background: #fffdf8;
+          color: #171413;
+          border: 2px solid rgba(23, 20, 19, 0.18);
+          border-radius: 16px;
+          padding: 16px 18px;
+          margin-bottom: 8px;
+          font-size: 16px;
+        }
+
+        .input::placeholder {
+          color: rgba(23, 20, 19, 0.4);
+        }
+
+        .actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 22px;
+          gap: 12px;
+        }
+
+        .link {
+          background: transparent;
+          border-radius: 999px;
+          padding: 10px 18px;
+          font-size: 14px;
+          border: 1px dashed rgba(23, 20, 19, 0.4);
+          color: var(--muted);
+        }
+
+        .link:hover {
+          border-style: solid;
+          color: #171413;
+        }
+
+        .primary {
+          background: var(--accent);
+          color: var(--accent-contrast);
+          border-radius: 999px;
+          padding: 13px 24px;
+          min-width: 190px;
+          font-weight: 700;
+          border: none;
+          font-size: 15px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+
+        .primary:disabled {
+          opacity: 0.45;
+          cursor: default;
+        }
+
+        .list {
+          list-style: none;
+          padding: 0;
+          margin: 16px 0 0;
+          display: grid;
+          gap: 14px;
+        }
+
+        .result {
+          border-radius: 18px;
+          padding: 18px 16px;
+          background: #fffdf8;
+          border: 1px solid rgba(23, 20, 19, 0.12);
+        }
+
+        .title {
+          font-weight: 700;
+          margin-bottom: 4px;
+          color: #171413;
+          font-size: 18px;
+        }
+
+        .meta {
+          color: #7b7062;
+          font-size: 14px;
+          margin-bottom: 8px;
+        }
+
+        .desc {
+          color: #312b24;
+          font-size: 15px;
+        }
+
+        @media (max-width: 640px) {
+          .wrap {
+            padding: 24px 14px 32px;
+          }
+
+          .card {
+            padding: 26px 20px 22px;
+          }
+
+          h1 {
+            font-size: 30px;
+          }
+
+          .sub {
+            font-size: 16px;
+          }
+
+          .grid {
+            grid-template-columns: 1fr;
+          }
+
+          .option {
+            min-height: 100px;
+          }
+
+          .actions {
+            flex-direction: column-reverse;
+            align-items: stretch;
+          }
+
+          .primary,
+          .link {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+          }
+        }
+      `}</style>
     </main>
   );
 }
