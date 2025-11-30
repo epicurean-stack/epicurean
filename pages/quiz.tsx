@@ -687,45 +687,60 @@ export default function QuizPage() {
     font-size: 20px;
   }
 
-  /* ----------- GRID OF OPTIONS ----------- */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 32px;
-    margin-top: 10px;
-  }
+/* --- GRID: Big tiles, generous spacing --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px; /* BIGGER spacing */
+  margin-top: 32px;
+}
 
-  /* ----------- OPTION CARDS ----------- */
-  .option {
-    background: var(--pill);
-    border: 2px solid var(--border);
-    border-radius: 24px;
-    padding: 32px 24px;
-    min-height: 130px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    transition: all 180ms ease;
-    cursor: pointer;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text);
-    box-shadow: var(--shadow-soft);
-  }
+/* --- OPTION TILE: Much larger, boxy, playful --- */
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pill);
+  color: var(--text);
+  border: 3px solid var(--border);
+  border-radius: 26px;
+  padding: 40px 28px;   /* Big tall card style */
+  min-height: 220px;    /* Taller like GPD cards */
+  text-align: center;
+  cursor: pointer;
 
-  .option:hover {
-    transform: translateY(-6px) scale(1.02);
-    background: #222;
-    border-color: var(--accent);
-    box-shadow: var(--shadow);
-  }
+  transition: 
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
 
-  .option.selected {
-    background: var(--pill-muted);
-    border-color: var(--accent);
-    box-shadow: var(--shadow);
-  }
+  box-shadow: var(--shadow-soft);
+}
+
+/* --- Label inside card --- */
+.option .label {
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* --- Hover: playful lift --- */
+.option:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: var(--text);
+  background: var(--pill-muted);
+  box-shadow: var(--shadow);
+}
+
+/* --- Selected: bold outline, warm fill --- */
+.option.selected {
+  border-color: var(--accent);
+  background: var(--pill-muted);
+  box-shadow: var(--shadow);
+  transform: translateY(-4px) scale(1.01);
+}
 
   /* ----------- INPUT ----------- */
   .input {
