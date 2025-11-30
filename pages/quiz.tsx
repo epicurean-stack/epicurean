@@ -624,172 +624,235 @@ export default function QuizPage() {
         )}
       </AnimatePresence>
 
-     <style jsx>{`
-  /* ----------- THEME ----------- */
-  [data-theme="epicurean"] {
-    --bg: #000000;
-    --card: #111111;
-    --text: #f7f2e9;
-    --muted: #b8b2a9;
-    --border: #2b2b2b;
-    --accent: #f7f2e9;
-    --accent-contrast: #000;
-    --pill: #1a1a1a;
-    --pill-muted: #2a2a2a;
-    --shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-    --shadow-soft: 0 4px 10px rgba(0, 0, 0, 0.3);
-  }
+         <style jsx>{`
+        /* ------------- Theme tokens ------------- */
+        :root {
+          --bg: #0f1217;
+          --text: #ffffff;
+          --muted: #9ca3af;
+          --border: #2a2f3a;
+          --card: #111318;
+          --accent: #f5ecdd;
+          --accent-contrast: #111318;
+          --pill: #181b21;
+          --pill-muted: #232731;
+          --shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+          --shadow-soft: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
 
-  /* ----------- WRAPPER ----------- */
-  .wrap {
-    max-width: 920px;
-    margin: 80px auto;
-    padding: 0 24px 80px;
-    color: var(--text);
-  }
+        [data-theme="epicurean"] {
+          --bg: #050505;
+          --card: #050505;
+          --text: #f5ecdd;
+          --muted: #b7aea0;
+          --border: #373737;
+          --accent: #f5ecdd;
+          --accent-contrast: #050505;
+          --pill: #141414;
+          --pill-muted: #1b1b1b;
+        }
 
-  .progress {
-    height: 6px;
-    background: #333;
-    border-radius: 999px;
-    overflow: hidden;
-    margin-bottom: 32px;
-  }
-  .bar {
-    height: 100%;
-    background: var(--accent);
-    transition: width 220ms ease;
-  }
+        /* ------------- Layout ------------- */
+        .wrap {
+          min-height: 100vh;
+          background: var(--bg);
+          color: var(--text);
+          padding: 40px 24px 72px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
 
-  /* ----------- CARD ----------- */
-  .card {
-    background: var(--card);
-    border-radius: 28px;
-    padding: 50px 42px;
-    box-shadow: var(--shadow-soft);
-  }
+        .progress {
+          width: 100%;
+          max-width: 1100px;
+          height: 8px;
+          border-radius: 999px;
+          background: #262626;
+          overflow: hidden;
+          margin-bottom: 40px;
+        }
 
-  /* ----------- HEADINGS ----------- */
-  h1 {
-    font-size: 48px;
-    line-height: 1.1;
-    margin: 0 0 20px;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--text);
-    text-align: center;
-  }
+        .bar {
+          height: 100%;
+          background: var(--accent);
+          transition: width 220ms ease;
+        }
 
-  .sub {
-    text-align: center;
-    margin-bottom: 36px;
-    color: var(--muted);
-    font-size: 20px;
-  }
+        .card {
+          width: 100%;
+          max-width: 1100px;
+          background: transparent;
+          border-radius: 32px;
+          padding: 16px 24px 40px;
+        }
 
-/* --- GRID: Big tiles, generous spacing --- */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 32px; /* BIGGER spacing */
-  margin-top: 32px;
-}
+        h1 {
+          font-size: clamp(40px, 5vw, 64px);
+          line-height: 1.05;
+          margin: 0 0 8px;
+          text-align: center;
+          letter-spacing: -0.03em;
+          color: var(--accent);
+        }
 
-/* --- OPTION TILE: Much larger, boxy, playful --- */
-.option {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--pill);
-  color: var(--text);
-  border: 3px solid var(--border);
-  border-radius: 26px;
-  padding: 40px 28px;   /* Big tall card style */
-  min-height: 220px;    /* Taller like GPD cards */
-  text-align: center;
-  cursor: pointer;
+        .sub {
+          text-align: center;
+          color: var(--muted);
+          margin: 0 0 32px;
+          font-size: 18px;
+        }
 
-  transition: 
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background 180ms ease;
+        /* ------------- BIG TILE GRID ------------- */
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 32px;
+          margin: 32px auto 0;
+          max-width: 1000px;
+        }
 
-  box-shadow: var(--shadow-soft);
-}
+        .option {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          min-height: 220px; /* BIG and tall like GPD */
+          padding: 40px 28px;
+          background: var(--pill);
+          color: var(--text);
+          border-radius: 28px;
+          border: 3px solid var(--border);
+          text-align: center;
+          cursor: pointer;
+          box-shadow: var(--shadow-soft);
+          transition:
+            transform 180ms ease,
+            box-shadow 180ms ease,
+            border-color 180ms ease,
+            background 180ms ease;
+        }
 
-/* --- Label inside card --- */
-.option .label {
-  font-size: 24px;
-  line-height: 1.25;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
+        .option .label {
+          font-size: 24px;
+          line-height: 1.25;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+        }
 
-/* --- Hover: playful lift --- */
-.option:hover {
-  transform: translateY(-6px) scale(1.02);
-  border-color: var(--text);
-  background: var(--pill-muted);
-  box-shadow: var(--shadow);
-}
+        .option:hover {
+          transform: translateY(-6px) scale(1.02);
+          box-shadow: var(--shadow);
+          border-color: var(--accent);
+          background: var(--pill-muted);
+        }
 
-/* --- Selected: bold outline, warm fill --- */
-.option.selected {
-  border-color: var(--accent);
-  background: var(--pill-muted);
-  box-shadow: var(--shadow);
-  transform: translateY(-4px) scale(1.01);
-}
+        .option.selected {
+          border-color: var(--accent);
+          background: var(--pill-muted);
+          box-shadow: var(--shadow);
+          transform: translateY(-4px) scale(1.01);
+        }
 
-  /* ----------- INPUT ----------- */
-  .input {
-    width: 100%;
-    background: #ffffff;
-    color: #000;
-    border-radius: 16px;
-    border: none;
-    padding: 18px 20px;
-    font-size: 18px;
-    margin-bottom: 20px;
-  }
+        /* ------------- Inputs & buttons ------------- */
+        .input {
+          width: 100%;
+          max-width: 640px;
+          margin: 0 auto 12px;
+          display: block;
+          background: var(--pill);
+          color: var(--text);
+          border-radius: 18px;
+          border: 2px solid var(--border);
+          padding: 16px 18px;
+          font-size: 18px;
+        }
 
-  /* ----------- BUTTONS ----------- */
-  .actions {
-    margin-top: 40px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
+        .actions {
+          margin-top: 24px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+          max-width: 640px;
+          margin-left: auto;
+          margin-right: auto;
+        }
 
-  .primary {
-    background: var(--accent);
-    color: var(--accent-contrast);
-    border: none;
-    padding: 18px 32px;
-    border-radius: 16px;
-    font-weight: 700;
-    font-size: 18px;
-    min-width: 200px;
-    cursor: pointer;
-    transition: background 160ms ease, transform 160ms ease;
-  }
-  .primary:hover:not(:disabled) {
-    transform: translateY(-3px);
-    background: #fff1dc;
-    color: #000;
-  }
+        .link {
+          background: transparent;
+          color: var(--muted);
+          border-radius: 999px;
+          padding: 10px 18px;
+          border: 1px dashed var(--border);
+          font-size: 16px;
+        }
 
-  .link {
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    font-size: 18px;
-    text-decoration: underline;
-    cursor: pointer;
-  }
-`}
-</style>
+        .primary {
+          background: var(--accent);
+          color: var(--accent-contrast);
+          border-radius: 999px;
+          border: none;
+          padding: 13px 28px;
+          font-weight: 700;
+          font-size: 16px;
+          min-width: 190px;
+        }
+
+        .primary:disabled {
+          opacity: 0.55;
+        }
+
+        .list {
+          list-style: none;
+          padding: 0;
+          margin: 24px 0 0;
+          display: grid;
+          gap: 16px;
+          max-width: 900px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .result {
+          border-radius: 18px;
+          border: 1px solid var(--border);
+          padding: 16px 18px;
+          background: var(--pill);
+        }
+
+        .title {
+          font-weight: 700;
+          margin-bottom: 4px;
+        }
+
+        .meta {
+          font-size: 14px;
+          color: var(--muted);
+          margin-bottom: 8px;
+        }
+
+        .desc {
+          font-size: 15px;
+        }
+
+        @media (max-width: 768px) {
+          .card {
+            padding: 0 0 32px;
+          }
+          h1 {
+            font-size: 36px;
+          }
+          .grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+          }
+          .option {
+            min-height: 180px;
+            padding: 28px 20px;
+          }
+        }
+      `}</style>
     </main>
   );
 }
