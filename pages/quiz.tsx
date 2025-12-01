@@ -479,73 +479,86 @@ export default function QuizPage() {
   };
 
   /** Render helpers for options */
-  const renderButtons = (
-    opts: { label: string; value: string }[],
-    id: Single,
-    selectedValue?: string
-  ) => (
-    <div className="options-grid">
-      {opts.map((o) => {
-        const selected = selectedValue === o.value;
-        return (
-          <button
-            key={o.value}
-            type="button"
-            className={`option-card ${selected ? "selected" : ""}`}
-            onClick={() => setSingle(id, o.value)}
-          >
-            <span className="option-label">{o.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+const renderButtons = (
+  opts: { label: string; value: string }[],
+  id: Single,
+  selectedValue?: string
+) => (
+  <div className="options-grid">
+    {opts.map((o) => {
+      const selected = selectedValue === o.value;
+      return (
+        <div
+          key={o.value}
+          role="button"
+          tabIndex={0}
+          className={`option-card ${selected ? "selected" : ""}`}
+          onClick={() => setSingle(id, o.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setSingle(id, o.value);
+            }
+          }}
+        >
+          <span className="option-label">{o.label}</span>
+        </div>
+      );
+    })}
+  </div>
+);
 
   const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
-    const picked = new Set([...(state[id] as string[] | undefined) || []]);
-    const toggle = (v: string) => toggleMulti(id, v);
+  const picked = new Set([...(state[id] as string[] | undefined) || []]);
+  const toggle = (v: string) => toggleMulti(id, v);
 
-    return (
-      <>
-        <div className="options-grid">
-          {opts.map((o) => {
-            const active = picked.has(o.value);
-            return (
-              <button
-                key={o.value}
-                type="button"
-                className={`option-card ${active ? "selected" : ""}`}
-                onClick={() => toggle(o.value)}
-              >
-                <span className="option-label">{o.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="actions">
-          {canGoBack && (
-            <button
-              className="secondary-btn"
-              type="button"
-              onClick={() => go(-1)}
+  return (
+    <>
+      <div className="options-grid">
+        {opts.map((o) => {
+          const active = picked.has(o.value);
+          return (
+            <div
+              key={o.value}
+              role="button"
+              tabIndex={0}
+              className={`option-card ${active ? "selected" : ""}`}
+              onClick={() => toggle(o.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  toggle(o.value);
+                }
+              }}
             >
-              Back
-            </button>
-          )}
-          <button
-            className="primary-btn"
-            type="button"
-            disabled={!canAdvanceFromMulti}
-            onClick={() => (isLast ? handleSubmit() : go(1))}
-          >
-            {isLast ? "See your matches" : "Next"}
-          </button>
-        </div>
-      </>
-    );
-  };
+              <span className="option-label">{o.label}</span>
+            </div>
+          );
+        })}
+      </div>
 
+      <div className="actions">
+        {canGoBack && (
+          <button
+            className="secondary-btn"
+            type="button"
+            onClick={() => go(-1)}
+          >
+            Back
+          </button>
+        )}
+        <button
+          className="primary-btn"
+          type="button"
+          disabled={!canAdvanceFromMulti}
+          onClick={() => (isLast ? handleSubmit() : go(1))}
+        >
+          {isLast ? "See your matches" : "Next"}
+        </button>
+      </div>
+    </>
+  );
+};
   /** Single-step “Next” button enablement */
   const singleSelectedValue =
     step.type === "single"
@@ -764,18 +777,20 @@ export default function QuizPage() {
           margin: 0 auto 40px;
         }
 
-        h1 {
-          font-family: "Cormorant Garamond", "Times New Roman", serif;
-          font-size: 40px; /* consistent heading size across all steps */
-          line-height: 1.16;
-          letter-spacing: 0.02em;
-          margin: 6px 0 0;
-        }
+       h1 {
+  font-family: "Cormorant Garamond", "Times New Roman", serif;
+  font-size: 44px; /* was 40px */
+  line-height: 1.16;
+  letter-spacing: 0.02em;
+  margin: 6px 0 0;
+}
 
         .eyebrow {
-          font-size: 18px;
-          color: #c9bfae;
-          margin: 0;
+         font-family: "Cormorant Garamond", "Times New Roman", serif;
+  font-size: 44px; /* was 40px */
+  line-height: 1.16;
+  letter-spacing: 0.02em;
+  margin: 6px 0 0;
         }
 
         .name-input-wrap {
