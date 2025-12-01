@@ -1,7 +1,7 @@
 // pages/quiz.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { AnimatePresence, motion } from "framer-motion";
 
 /** ---------------------------
  *  Types
@@ -28,7 +28,8 @@ type QuizState = {
   involvement?: string;
   experienceTags?: string[];
   flavourProfile?: string;
-  budget_pp?: number;
+  budget?: string; // raw value from buttons
+  budget_pp?: number; // numeric version sent to API
   adventureLevel?: string;
   restrictions?: string[];
   animalType?: string;
@@ -38,47 +39,33 @@ type Step =
   | {
       id: "name";
       type: "text";
-      title: string;
-      subtitle?: string;
-      placeholder?: string;
     }
   | {
       id: Single;
       type: "single";
-      title: string;
-      subtitle?: string;
       options: { label: string; value: string }[];
-      autoAdvance?: boolean; // default true
     }
   | {
       id: Multi;
       type: "multi";
-      title: string;
-      subtitle?: string;
       options: { label: string; value: string }[];
       min?: number;
       max?: number;
     };
 
 /** ---------------------------
- *  Step configuration
+ *  Step configuration (options only)
+ *  Copy for headings is handled in renderHeading()
  *  --------------------------*/
 const STEPS: Step[] = [
-  {
-    id: "name",
-    type: "text",
-    title: "Let’s start on a first-name basis.",
-    subtitle: "What should we call you?",
-    placeholder: "Type your name",
-  },
+  { id: "name", type: "text" },
   {
     id: "vibe",
     type: "single",
-    title: "What kind of vibe are you going for?",
     options: [
       { label: "A cosy night in", value: "cosy" },
       { label: "A big night out", value: "bigNightOut" },
-      { label: "An outdoor adventure", value: "OutdoorAdventure" },
+      { label: "An outdoor adventure", value: "outdoorAdventure" },
       { label: "A chance to learn something new", value: "learnSomething" },
       { label: "Surprise me", value: "surprise" },
     ],
@@ -86,7 +73,6 @@ const STEPS: Step[] = [
   {
     id: "group",
     type: "single",
-    title: "Who are you planning to gather with?",
     options: [
       { label: "Just me", value: "solo" },
       { label: "Date night", value: "date" },
@@ -98,7 +84,6 @@ const STEPS: Step[] = [
   {
     id: "location",
     type: "single",
-    title: "Where do you want it to happen?",
     options: [
       { label: "Out and about", value: "out" },
       { label: "At home", value: "home" },
@@ -109,18 +94,19 @@ const STEPS: Step[] = [
   {
     id: "foodType",
     type: "single",
-    title: "What sounds tastiest?",
     options: [
       { label: "A delicious meal", value: "meal" },
-      { label: "A food-based experience", value: "foodExperience" },
+      { label: "A cooking experience", value: "foodExperience" },
       { label: "A boozy tasting session", value: "tasting" },
-      { label: "Surprise me", value: "surprise" },
+      { label: "Exploring an area", value: "exploring" },
+      { label: "Something totally unique", value: "unique" },
+      { label: "A cultural experience", value: "cultural" },
+      { label: "No preference", value: "noPreference" },
     ],
   },
   {
     id: "involvement",
     type: "single",
-    title: "How involved do you want to be?",
     options: [
       { label: "I want to learn how to do it myself", value: "learn" },
       { label: "I want to watch someone do it for me", value: "watch" },
@@ -131,8 +117,8 @@ const STEPS: Step[] = [
   {
     id: "experienceTags",
     type: "multi",
-    title: "Describe your perfect experience",
-    subtitle: "Pick 2–3",
+    min: 2,
+    max: 3,
     options: [
       { label: "Relaxed", value: "relaxed" },
       { label: "Social", value: "social" },
@@ -143,28 +129,12 @@ const STEPS: Step[] = [
       { label: "Luxurious", value: "luxurious" },
       { label: "Romantic", value: "romantic" },
       { label: "Quirky", value: "quirky" },
-      { label: "Cultural", value: "cultural" },
-    ],
-    min: 2,
-    max: 3,
-  },
-  {
-    id: "flavourProfile",
-    type: "single",
-    title: "Imagine your perfect bite of food. How would you describe it?",
-    options: [
-      { label: "Bold & rich", value: "boldRich" },
-      { label: "Fresh & zesty", value: "freshZesty" },
-      { label: "Sweet & indulgent", value: "sweetIndulgent" },
-      { label: "Savoury & earthy", value: "savouryEarthy" },
-      { label: "Herbaceous", value: "herbaceous" },
-      { label: "Not sure", value: "unsure" },
+      { label: "Emotional", value: "emotional" },
     ],
   },
   {
     id: "budget",
     type: "single",
-    title: "What’s your budget sweet spot per person?",
     options: [
       { label: "< $50", value: "<50" },
       { label: "$50–$100", value: "50-100" },
@@ -175,8 +145,6 @@ const STEPS: Step[] = [
   {
     id: "adventureLevel",
     type: "single",
-    title:
-      "On a scale of bubble bath to white-water raft, how adventurous are you and your group?",
     options: [
       { label: "Stick to what I know", value: "low" },
       {
@@ -190,7 +158,6 @@ const STEPS: Step[] = [
   {
     id: "restrictions",
     type: "multi",
-    title: "Any hard no’s we should know about?",
     options: [
       { label: "No alcohol", value: "noAlcohol" },
       { label: "Must be vegan / veggie friendly", value: "veganOnly" },
@@ -203,7 +170,6 @@ const STEPS: Step[] = [
   {
     id: "animalType",
     type: "single",
-    title: "Finally, pick an animal that represents you and your group",
     options: [
       { label: "Chill cats", value: "chillCats" },
       { label: "Curious foxes", value: "curiousFoxes" },
@@ -239,9 +205,7 @@ const budgetToNumber = (v?: string): number | undefined => {
 const clamp = (n: number, min: number, max: number) =>
   Math.max(min, Math.min(max, n));
 
-/** ---------------------------
- *  Mapping helpers
- *  --------------------------*/
+/** Mapping helpers for /api/recommend payload */
 function mapGroup(group?: string) {
   switch (group) {
     case "solo":
@@ -316,27 +280,29 @@ export default function QuizPage() {
   const total = STEPS.length;
   const progress = Math.round(((stepIndex + 1) / total) * 100);
 
-  // focus text input when it shows
-  useEffect(() => {
-    if (step?.type === "text") inputRef.current?.focus();
-  }, [stepIndex, step?.type]);
-
   const canGoBack = stepIndex > 0;
   const isLast = stepIndex === total - 1;
 
-  /** Handlers */
-  const go = (dir: 1 | -1) => setStepIndex((i) => clamp(i + dir, 0, total - 1));
+  // focus text input when name step shows
+  useEffect(() => {
+    if (step.id === "name") inputRef.current?.focus();
+  }, [stepIndex, step.id]);
 
-  const setSingle = (id: Single, value: string, autoAdvance = true) => {
+  /** Navigation helpers */
+  const go = (dir: 1 | -1) =>
+    setStepIndex((i) => clamp(i + dir, 0, total - 1));
+
+  const setSingle = (id: Single, value: string) => {
     setState((s) => {
       const next: QuizState = { ...s };
-      if (id === "budget") next.budget_pp = budgetToNumber(value);
-      else (next as any)[id] = value;
+      if (id === "budget") {
+        next.budget = value;
+        next.budget_pp = budgetToNumber(value);
+      } else {
+        (next as any)[id] = value;
+      }
       return next;
     });
-    if (autoAdvance) {
-      setTimeout(() => (isLast ? handleSubmit() : go(1)), 120);
-    }
   };
 
   const toggleMulti = (id: Multi, value: string) => {
@@ -349,7 +315,7 @@ export default function QuizPage() {
   };
 
   const canAdvanceFromMulti = useMemo(() => {
-    if (step?.type !== "multi") return false;
+    if (step.type !== "multi") return false;
     const picked = (state[step.id] as string[] | undefined) || [];
     const min = step.min ?? 0;
     const max = step.max ?? 999;
@@ -394,7 +360,7 @@ export default function QuizPage() {
       setSubmitting(false);
     }
 
-    // Non-blocking lead save
+    // non-blocking lead save
     try {
       const selectedIds =
         Array.isArray(data)
@@ -418,442 +384,562 @@ export default function QuizPage() {
     }
   };
 
-  /** Renderers */
-const renderButtons = (
-  opts: { label: string; value: string }[],
-  id: Single
-) => (
-  <div className="grid">
-    {opts.map((o) => (
-      <div
-        key={o.value}
-        className="option"
-        role="button"
-        tabIndex={0}
-        onClick={() => setSingle(id, o.value, true)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setSingle(id, o.value, true);
-          }
-        }}
-      >
-        <span className="label">{o.label}</span>
-      </div>
-    ))}
-  </div>
-);
+  /** Heading copy based on step */
+  const renderHeading = () => {
+    switch (step.id) {
+      case "name":
+        return (
+          <>
+            <p className="eyebrow">Let&apos;s start on a first-name basis.</p>
+            <h1>What should we call you?</h1>
+          </>
+        );
+      case "vibe": {
+        const name = state.name?.trim();
+        return (
+          <>
+            <p className="eyebrow">
+              {name ? `Nice to meet you, ${name}!` : "Nice to meet you!"}
+            </p>
+            <h1>So, what kind of vibe are you going for?</h1>
+          </>
+        );
+      }
+      case "group":
+        return (
+          <>
+            <p className="eyebrow">Sounds lovely!</p>
+            <h1>Who are you planning to gather with?</h1>
+          </>
+        );
+      case "location":
+        return (
+          <>
+            <p className="eyebrow">Cool!</p>
+            <h1>And, where do you want it to happen?</h1>
+          </>
+        );
+      case "foodType":
+        return (
+          <>
+            <p className="eyebrow">
+              Awesome! We&apos;ve definitely got something for you.
+            </p>
+            <h1>Just to check, have you got any initial ideas?</h1>
+          </>
+        );
+      case "involvement":
+        return (
+          <>
+            <p className="eyebrow">Got it!</p>
+            <h1>So, how involved do you want to be?</h1>
+          </>
+        );
+      case "experienceTags":
+        return (
+          <>
+            <p className="eyebrow">
+              And, how would you describe your perfect experience?
+            </p>
+            <h1>[pick 2–3]</h1>
+          </>
+        );
+      case "budget":
+        return (
+          <>
+            <p className="eyebrow">Almost there!</p>
+            <h1>What&apos;s your budget sweet spot per person?</h1>
+          </>
+        );
+      case "adventureLevel":
+        return (
+          <>
+            <p className="eyebrow">
+              On a scale of Bubble Bath to Whitewater Raft…
+            </p>
+            <h1>How adventurous are you and your group?</h1>
+          </>
+        );
+      case "restrictions":
+        return (
+          <>
+            <h1>Any hard no&apos;s we should know about?</h1>
+          </>
+        );
+      case "animalType":
+        return (
+          <>
+            <p className="eyebrow">And lastly, just for fun…</p>
+            <h1>Which animal best represents your group?</h1>
+          </>
+        );
+      default:
+        return <h1>Epicurean Quiz</h1>;
+    }
+  };
 
-const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
-  const picked = new Set([...(state[id] as string[] | undefined) || []]);
-  const toggle = (v: string) => toggleMulti(id, v);
-
-  return (
-    <>
-      <div className="grid">
-        {opts.map((o) => {
-          const active = picked.has(o.value);
-          return (
-            <div
-              key={o.value}
-              className={`option ${active ? "selected" : ""}`}
-              role="button"
-              aria-pressed={active}
-              tabIndex={0}
-              onClick={() => toggle(o.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  toggle(o.value);
-                }
-              }}
-            >
-              <span className="label">{o.label}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="actions">
-        {canGoBack && (
-          <button className="link" onClick={() => go(-1)} type="button">
-            Back
+  /** Render helpers for options */
+  const renderButtons = (
+    opts: { label: string; value: string }[],
+    id: Single,
+    selectedValue?: string
+  ) => (
+    <div className="options-grid">
+      {opts.map((o) => {
+        const selected = selectedValue === o.value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            className={`option-card ${selected ? "selected" : ""}`}
+            onClick={() => setSingle(id, o.value)}
+          >
+            <span className="option-label">{o.label}</span>
           </button>
-        )}
-        <button
-          className="primary"
-          disabled={!canAdvanceFromMulti}
-          onClick={() => (isLast ? handleSubmit() : go(1))}
-          type="button"
-        >
-          {isLast ? "See your matches" : "Next"}
-        </button>
-      </div>
-    </>
-  );
-};
-
-  const StepCard = ({ children }: { children: React.ReactNode }) => (
-    <motion.section
-      className="card"
-      key={stepIndex}
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      transition={{ duration: 0.28, ease: "easeOut" }}
-    >
-      {children}
-    </motion.section>
+        );
+      })}
+    </div>
   );
 
-  /** Final UI */
+  const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
+    const picked = new Set([...(state[id] as string[] | undefined) || []]);
+    const toggle = (v: string) => toggleMulti(id, v);
+
+    return (
+      <>
+        <div className="options-grid">
+          {opts.map((o) => {
+            const active = picked.has(o.value);
+            return (
+              <button
+                key={o.value}
+                type="button"
+                className={`option-card ${active ? "selected" : ""}`}
+                onClick={() => toggle(o.value)}
+              >
+                <span className="option-label">{o.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="actions">
+          {canGoBack && (
+            <button
+              className="secondary-btn"
+              type="button"
+              onClick={() => go(-1)}
+            >
+              Back
+            </button>
+          )}
+          <button
+            className="primary-btn"
+            type="button"
+            disabled={!canAdvanceFromMulti}
+            onClick={() => (isLast ? handleSubmit() : go(1))}
+          >
+            {isLast ? "See your matches" : "Next"}
+          </button>
+        </div>
+      </>
+    );
+  };
+
+  /** Single-step “Next” button enablement */
+  const singleSelectedValue =
+    step.type === "single"
+      ? step.id === "budget"
+        ? state.budget
+        : ((state as any)[step.id] as string | undefined)
+      : undefined;
+
+  /** ---------------- Render ---------------- */
   return (
-    <main className="wrap" data-theme="epicurean">
+    <main className="quiz-page">
+      <header className="quiz-header">
+        <Link href="/" className="logo">
+          EPICUREAN
+        </Link>
+      </header>
+
       <div className="progress">
         <div className="bar" style={{ width: `${progress}%` }} />
       </div>
 
-      <AnimatePresence mode="wait">
-        {!results && !submitting && !error && (
-          <StepCard>
-            {step.type === "text" && (
-              <>
-                <h1>{step.title}</h1>
-                {step.subtitle && <p className="sub">{step.subtitle}</p>}
+      {!results && !submitting && !error && (
+        <section className="step-card">
+          <div className="step-heading">{renderHeading()}</div>
+
+          {step.type === "text" && (
+            <>
+              <div className="name-input-wrap">
                 <input
                   ref={inputRef}
-                  className="input"
-                  placeholder={step.placeholder}
+                  className="name-input"
+                  placeholder="[Free text]"
                   defaultValue={state.name || ""}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, name: e.target.value }))
+                  }
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const name = (e.target as HTMLInputElement).value.trim();
-                      setState((s) => ({ ...s, name }));
+                    if (e.key === "Enter" && state.name?.trim()) {
                       go(1);
                     }
                   }}
-                  onBlur={(e) =>
-                    setState((s) => ({ ...s, name: e.target.value.trim() }))
-                  }
                 />
-                <div className="actions">
-                  {canGoBack && (
-                    <button className="link" onClick={() => go(-1)} type="button">
-                      Back
-                    </button>
-                  )}
-                  <button
-                    className="primary"
-                    onClick={() => go(1)}
-                    disabled={!state.name}
-                    type="button"
-                  >
-                    Continue
-                  </button>
-                </div>
-              </>
-            )}
-
-            {step.type === "single" && (
-              <>
-                <h1>{step.title}</h1>
-                {step.subtitle && <p className="sub">{step.subtitle}</p>}
-                {renderButtons(step.options, step.id)}
+              </div>
+              <div className="actions">
                 {canGoBack && (
-                  <div className="actions">
-                    <button className="link" onClick={() => go(-1)} type="button">
-                      Back
-                    </button>
-                  </div>
+                  <button
+                    className="secondary-btn"
+                    type="button"
+                    onClick={() => go(-1)}
+                  >
+                    Back
+                  </button>
                 )}
-              </>
-            )}
+                <button
+                  className="primary-btn"
+                  type="button"
+                  disabled={!state.name?.trim()}
+                  onClick={() => go(1)}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          )}
 
-            {step.type === "multi" && (
-              <>
-                <h1>{step.title}</h1>
-                {step.subtitle && <p className="sub">{step.subtitle}</p>}
-                {renderMulti(step.options, step.id)}
-              </>
-            )}
-          </StepCard>
-        )}
+          {step.type === "single" && (
+            <>
+              {renderButtons(step.options, step.id, singleSelectedValue)}
+              <div className="actions">
+                {canGoBack && (
+                  <button
+                    className="secondary-btn"
+                    type="button"
+                    onClick={() => go(-1)}
+                  >
+                    Back
+                  </button>
+                )}
+                <button
+                  className="primary-btn"
+                  type="button"
+                  disabled={!singleSelectedValue}
+                  onClick={() => (isLast ? handleSubmit() : go(1))}
+                >
+                  {isLast ? "See your matches" : "Next"}
+                </button>
+              </div>
+            </>
+          )}
 
-        {submitting && (
-          <motion.section
-            className="card"
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
+          {step.type === "multi" && renderMulti(step.options, step.id)}
+        </section>
+      )}
+
+      {submitting && (
+        <section className="step-card">
+          <div className="step-heading">
             <h1>Finding your matches…</h1>
-            <p className="sub">We’re searching Epicurean experiences for you.</p>
-          </motion.section>
-        )}
+            <p className="eyebrow">
+              We&apos;re searching Epicurean experiences for you.
+            </p>
+          </div>
+        </section>
+      )}
 
-        {error && !submitting && (
-          <motion.section
-            className="card"
-            key="error"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
+      {error && !submitting && (
+        <section className="step-card">
+          <div className="step-heading">
             <h1>Something went wrong</h1>
-            <p className="sub">{error}</p>
-            <button className="primary" onClick={() => setError(null)} type="button">
+            <p className="eyebrow">{error}</p>
+          </div>
+          <div className="actions">
+            <button
+              className="primary-btn"
+              type="button"
+              onClick={() => setError(null)}
+            >
               Try again
             </button>
-          </motion.section>
-        )}
+          </div>
+        </section>
+      )}
 
-        {results && !submitting && (
-          <motion.section
-            className="card"
-            key="results"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <h1>Your recommendations</h1>
-            <ul className="list">
-              {results.map((r: any, i: number) => (
-                <li key={r?.id || i} className="result">
-                  <div className="title">
-                    {r?.title || r?.fields?.Title || "Untitled experience"}
-                  </div>
-                  <div className="meta">
-                    <span>
-                      {(r?.format || r?.fields?.Format) ?? "—"} ·{" "}
-                      {(r?.cuisine || r?.fields?.Cuisine_Focus) ?? "—"}
-                    </span>
-                  </div>
-                  <div className="desc">
-                    {r?.description || r?.fields?.Description || "—"}
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <div className="actions">
-              <button className="link" onClick={() => setResults(null)} type="button">
-                Restart quiz
-              </button>
-            </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
+      {results && !submitting && (
+        <section className="step-card">
+          <div className="step-heading">
+            <h1>Your Epicurean matches</h1>
+            <p className="eyebrow">
+              Here are a few experiences we think you&apos;ll love.
+            </p>
+          </div>
+          <div className="results-grid">
+            {results.map((r: any, i: number) => (
+              <div key={r?.id || i} className="result-card">
+                <div className="result-title">
+                  {r?.title || r?.fields?.Title || "Untitled experience"}
+                </div>
+                <div className="result-meta">
+                  {(r?.format || r?.fields?.Format) ?? "—"} ·{" "}
+                  {(r?.cuisine || r?.fields?.Cuisine_Focus) ?? "—"}
+                </div>
+                <div className="result-desc">
+                  {r?.description || r?.fields?.Description || "—"}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="actions">
+            <button
+              className="secondary-btn"
+              type="button"
+              onClick={() => {
+                setResults(null);
+                setStepIndex(0);
+                setState({});
+              }}
+            >
+              Restart quiz
+            </button>
+          </div>
+        </section>
+      )}
 
-        <style jsx>{`
-  /* Page + theme */
-  .wrap {
-    min-height: 100vh;
-    max-width: 1120px;
-    margin: 40px auto 80px;
-    padding: 0 24px 40px;
-    color: #f5ecdd;
-    background: transparent; /* lets your site’s black bg show through */
-  }
+      <style jsx>{`
+        .quiz-page {
+          min-height: 100vh;
+          background: #050505;
+          color: #f5ecdd;
+          padding: 24px 24px 80px;
+        }
 
-  .progress {
-    height: 6px;
-    background: #252525;
-    border-radius: 999px;
-    overflow: hidden;
-    margin-bottom: 32px;
-  }
+        .quiz-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          max-width: 1120px;
+          margin: 0 auto 16px;
+        }
 
-  .bar {
-    height: 100%;
-    background: #f5ecdd;
-    transition: width 220ms ease;
-  }
+        .logo {
+          font-family: "Cormorant Garamond", "Times New Roman", serif;
+          letter-spacing: 0.18em;
+          font-size: 16px;
+          padding: 8px 18px;
+          border-radius: 999px;
+          border: 1px solid rgba(245, 236, 221, 0.5);
+          text-transform: uppercase;
+          text-decoration: none;
+          color: #f5ecdd;
+          background: rgba(5, 5, 5, 0.7);
+        }
 
-  .card {
-    background: transparent;
-    border-radius: 0;
-    padding: 0;
-  }
+        .progress {
+          max-width: 1120px;
+          margin: 0 auto 40px;
+          height: 6px;
+          background: #222;
+          border-radius: 999px;
+          overflow: hidden;
+        }
 
-  h1 {
-    font-size: 56px;
-    line-height: 1.1;
-    margin: 0 0 10px;
-    letter-spacing: -0.03em;
-    color: #f5ecdd;
-  }
+        .bar {
+          height: 100%;
+          background: #f5ecdd;
+          transition: width 200ms ease-out;
+        }
 
-  .sub {
-    color: #c3b8a7;
-    margin: 0 0 24px;
-    font-size: 18px;
-  }
+        .step-card {
+          max-width: 1120px;
+          margin: 0 auto;
+          text-align: center;
+        }
 
-  /* BIG GPD-STYLE GRID */
-  .grid {
-    margin: 40px auto 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 32px;
-    max-width: 1040px;
-  }
+        .step-heading {
+          max-width: 760px;
+          margin: 0 auto 40px;
+        }
 
-  .option {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+        h1 {
+          font-family: "Cormorant Garamond", "Times New Roman", serif;
+          font-size: 40px;
+          line-height: 1.16;
+          letter-spacing: 0.02em;
+          margin: 6px 0 0;
+        }
 
-    width: 100%;
-    min-height: 220px;
-    padding: 40px 28px;
+        .eyebrow {
+          font-size: 18px;
+          color: #c9bfae;
+          margin: 0;
+        }
 
-    background: #181818;
-    color: #f5ecdd;
-    border-radius: 28px;
-    border: 3px solid #373737;
+        .name-input-wrap {
+          margin: 32px auto 0;
+          max-width: 520px;
+        }
 
-    cursor: pointer;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+        .name-input {
+          width: 100%;
+          padding: 14px 18px;
+          border-radius: 8px;
+          border: 1px solid #4a4339;
+          background: #0b0b0b;
+          color: #f5ecdd;
+          font-size: 16px;
+        }
 
-    transition:
-      transform 180ms ease,
-      box-shadow 180ms ease,
-      border-color 180ms ease,
-      background 180ms ease,
-      color 180ms ease;
-  }
+        .name-input::placeholder {
+          color: #6f675c;
+        }
 
-  .option .label {
-    font-size: 22px;
-    line-height: 1.3;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
+        .options-grid {
+          margin: 40px auto 0;
+          max-width: 900px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(170px, 210px));
+          gap: 24px;
+          justify-content: center;
+        }
 
-  .option:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-    border-color: #f5ecdd;
-    background: #1f1f1f;
-  }
+        .option-card {
+          border-radius: 18px;
+          border: 1px solid #3a342b;
+          background: rgba(255, 255, 255, 0.02);
+          color: #f5ecdd;
+          padding: 28px 16px;
+          min-height: 160px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          cursor: pointer;
+          transition: all 150ms ease-out;
+          box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+        }
 
-  .option.selected {
-    border-color: #f5ecdd;
-    background: #f5ecdd;
-    color: #111111;
-    transform: translateY(-6px) scale(1.01);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-  }
+        .option-card:hover {
+          border-color: #f5ecdd;
+          background: rgba(255, 255, 255, 0.04);
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+        }
 
-  /* Name input + buttons */
-  .input {
-    width: 100%;
-    max-width: 600px;
-    background: #111111;
-    color: #f5ecdd;
-    border: 1px solid #3a3a3a;
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin: 24px 0 0;
-    font-size: 18px;
-  }
+        .option-card.selected {
+          background: #f5ecdd;
+          color: #111;
+          border-color: #f5ecdd;
+        }
 
-  .input::placeholder {
-    color: #66635c;
-  }
+        .option-label {
+          font-size: 16px;
+          line-height: 1.4;
+          font-weight: 600;
+        }
 
-  .actions {
-    display: flex;
-    justify-content: flex-start;
-    margin-top: 24px;
-    gap: 16px;
-  }
+        .actions {
+          margin: 32px auto 0;
+          max-width: 900px;
+          display: flex;
+          justify-content: center;
+          gap: 16px;
+        }
 
-  .link {
-    background: transparent;
-    border: 1px dashed #5f574a;
-    color: #d5cabb;
-    border-radius: 999px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-  }
+        .primary-btn,
+        .secondary-btn {
+          padding: 11px 24px;
+          border-radius: 999px;
+          font-size: 15px;
+          cursor: pointer;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
 
-  .primary {
-    background: #f5ecdd;
-    color: #111111;
-    border: none;
-    border-radius: 999px;
-    padding: 12px 24px;
-    min-width: 180px;
-    font-weight: 700;
-    font-size: 16px;
-    cursor: pointer;
-  }
+        .primary-btn {
+          background: #f5ecdd;
+          color: #111;
+          border: none;
+        }
 
-  .primary:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
+        .primary-btn:disabled {
+          opacity: 0.5;
+          cursor: default;
+        }
 
-  /* Results list */
-  .list {
-    list-style: none;
-    padding: 0;
-    margin: 32px 0 0;
-    display: grid;
-    gap: 16px;
-  }
+        .secondary-btn {
+          background: transparent;
+          color: #d4caba;
+          border: 1px dashed #6a5f4f;
+        }
 
-  .result {
-    border-radius: 18px;
-    border: 1px solid #373737;
-    padding: 16px 18px;
-    background: #111111;
-  }
+        .results-grid {
+          margin: 40px auto 0;
+          max-width: 1040px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 24px;
+        }
 
-  .title {
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: #f5ecdd;
-  }
+        .result-card {
+          border-radius: 18px;
+          border: 1px solid #3a342b;
+          background: rgba(255, 255, 255, 0.02);
+          padding: 20px 18px 22px;
+          text-align: left;
+        }
 
-  .meta {
-    color: #a89d8e;
-    font-size: 14px;
-    margin-bottom: 6px;
-  }
+        .result-title {
+          font-weight: 700;
+          font-size: 18px;
+          margin-bottom: 6px;
+        }
 
-  .desc {
-    color: #e4dbcf;
-    font-size: 15px;
-  }
+        .result-meta {
+          font-size: 14px;
+          color: #b0a494;
+          margin-bottom: 8px;
+        }
 
-  /* Mobile tweaks */
-  @media (max-width: 900px) {
-    .wrap {
-      margin-top: 24px;
-      padding: 0 16px 32px;
-    }
+        .result-desc {
+          font-size: 15px;
+          color: #f0e6d7;
+        }
 
-    h1 {
-      font-size: 38px;
-    }
+        @media (max-width: 768px) {
+          .quiz-page {
+            padding: 16px 16px 56px;
+          }
 
-    .grid {
-      grid-template-columns: 1fr;
-      gap: 24px;
-      margin-top: 32px;
-    }
+          .quiz-header {
+            margin-bottom: 12px;
+          }
 
-    .option {
-      min-height: 180px;
-      padding: 32px 20px;
-    }
+          .progress {
+            margin-bottom: 28px;
+          }
 
-    .option .label {
-      font-size: 20px;
-    }
-  }
-`}</style>
+          .step-heading {
+            margin-bottom: 28px;
+          }
+
+          h1 {
+            font-size: 30px;
+          }
+
+          .options-grid {
+            grid-template-columns: 1fr;
+            max-width: 480px;
+          }
+
+          .option-card {
+            min-height: 140px;
+          }
+        }
+      `}</style>
     </main>
   );
 }
