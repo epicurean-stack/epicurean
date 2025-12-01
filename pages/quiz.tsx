@@ -78,7 +78,7 @@ const STEPS: Step[] = [
     options: [
       { label: "A cosy night in", value: "cosy" },
       { label: "A big night out", value: "bigNightOut" },
-      { label: "An outdoor adventure", value: "adventure" },
+      { label: "An outdoor adventure", value: "OutdoorAdventure" },
       { label: "A chance to learn something new", value: "learnSomething" },
       { label: "Surprise me", value: "surprise" },
     ],
@@ -764,7 +764,7 @@ export default function QuizPage() {
           color: var(--text);
           border-radius: 18px;
           border: 2px solid var(--border);
-          padding: 16px 18px;
+          padding: 16px 28px;
           font-size: 18px;
         }
 
