@@ -419,7 +419,7 @@ export default function QuizPage() {
   };
 
   /** Renderers */
- const renderButtons = (
+const renderButtons = (
   opts: { label: string; value: string }[],
   id: Single
 ) => (
@@ -444,7 +444,7 @@ export default function QuizPage() {
   </div>
 );
 
-  const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
+const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
   const picked = new Set([...(state[id] as string[] | undefined) || []]);
   const toggle = (v: string) => toggleMulti(id, v);
 
@@ -641,235 +641,219 @@ export default function QuizPage() {
         )}
       </AnimatePresence>
 
-         <style jsx>{`
-        /* ------------- Theme tokens ------------- */
-        :root {
-          --bg: #0f1217;
-          --text: #ffffff;
-          --muted: #9ca3af;
-          --border: #2a2f3a;
-          --card: #111318;
-          --accent: #f5ecdd;
-          --accent-contrast: #111318;
-          --pill: #181b21;
-          --pill-muted: #232731;
-          --shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-          --shadow-soft: 0 6px 16px rgba(0, 0, 0, 0.3);
-        }
+        <style jsx>{`
+  /* Page + theme */
+  .wrap {
+    min-height: 100vh;
+    max-width: 1120px;
+    margin: 40px auto 80px;
+    padding: 0 24px 40px;
+    color: #f5ecdd;
+    background: transparent; /* lets your site’s black bg show through */
+  }
 
-        [data-theme="epicurean"] {
-          --bg: #050505;
-          --card: #050505;
-          --text: #f5ecdd;
-          --muted: #b7aea0;
-          --border: #373737;
-          --accent: #f5ecdd;
-          --accent-contrast: #050505;
-          --pill: #141414;
-          --pill-muted: #1b1b1b;
-        }
+  .progress {
+    height: 6px;
+    background: #252525;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
 
-        /* ------------- Layout ------------- */
-        .wrap {
-          min-height: 100vh;
-          background: var(--bg);
-          color: var(--text);
-          padding: 40px 24px 72px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
+  .bar {
+    height: 100%;
+    background: #f5ecdd;
+    transition: width 220ms ease;
+  }
 
-        .progress {
-          width: 100%;
-          max-width: 1100px;
-          height: 8px;
-          border-radius: 999px;
-          background: #262626;
-          overflow: hidden;
-          margin-bottom: 40px;
-        }
+  .card {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+  }
 
-        .bar {
-          height: 100%;
-          background: var(--accent);
-          transition: width 220ms ease;
-        }
+  h1 {
+    font-size: 56px;
+    line-height: 1.1;
+    margin: 0 0 10px;
+    letter-spacing: -0.03em;
+    color: #f5ecdd;
+  }
 
-        .card {
-          width: 100%;
-          max-width: 1100px;
-          background: transparent;
-          border-radius: 32px;
-          padding: 16px 24px 40px;
-        }
+  .sub {
+    color: #c3b8a7;
+    margin: 0 0 24px;
+    font-size: 18px;
+  }
 
-        h1 {
-          font-size: clamp(40px, 5vw, 64px);
-          line-height: 1.05;
-          margin: 0 0 8px;
-          text-align: center;
-          letter-spacing: -0.03em;
-          color: var(--accent);
-        }
+  /* BIG GPD-STYLE GRID */
+  .grid {
+    margin: 40px auto 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 32px;
+    max-width: 1040px;
+  }
 
-        .sub {
-          text-align: center;
-          color: var(--muted);
-          margin: 0 0 32px;
-          font-size: 18px;
-        }
+  .option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 
-        /* ------------- BIG TILE GRID ------------- */
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-          gap: 32px;
-          margin: 32px auto 0;
-          max-width: 1000px;
-        }
+    width: 100%;
+    min-height: 220px;
+    padding: 40px 28px;
 
-        .option {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          min-height: 220px; /* BIG and tall like GPD */
-          padding: 40px 28px;
-          background: var(--pill);
-          color: var(--text);
-          border-radius: 28px;
-          border: 3px solid var(--border);
-          text-align: center;
-          cursor: pointer;
-          box-shadow: var(--shadow-soft);
-          transition:
-            transform 180ms ease,
-            box-shadow 180ms ease,
-            border-color 180ms ease,
-            background 180ms ease;
-        }
+    background: #181818;
+    color: #f5ecdd;
+    border-radius: 28px;
+    border: 3px solid #373737;
 
-        .option .label {
-          font-size: 24px;
-          line-height: 1.25;
-          font-weight: 700;
-          letter-spacing: -0.01em;
-        }
+    cursor: pointer;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
 
-        .option:hover {
-          transform: translateY(-6px) scale(1.02);
-          box-shadow: var(--shadow);
-          border-color: var(--accent);
-          background: var(--pill-muted);
-        }
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease,
+      background 180ms ease,
+      color 180ms ease;
+  }
 
-        .option.selected {
-          border-color: var(--accent);
-          background: var(--pill-muted);
-          box-shadow: var(--shadow);
-          transform: translateY(-4px) scale(1.01);
-        }
+  .option .label {
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
 
-        /* ------------- Inputs & buttons ------------- */
-        .input {
-          width: 100%;
-          max-width: 640px;
-          margin: 0 auto 12px;
-          display: block;
-          background: var(--pill);
-          color: var(--text);
-          border-radius: 18px;
-          border: 2px solid var(--border);
-          padding: 16px 28px;
-          font-size: 18px;
-        }
+  .option:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    border-color: #f5ecdd;
+    background: #1f1f1f;
+  }
 
-        .actions {
-          margin-top: 24px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 16px;
-          max-width: 640px;
-          margin-left: auto;
-          margin-right: auto;
-        }
+  .option.selected {
+    border-color: #f5ecdd;
+    background: #f5ecdd;
+    color: #111111;
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+  }
 
-        .link {
-          background: transparent;
-          color: var(--muted);
-          border-radius: 999px;
-          padding: 10px 18px;
-          border: 1px dashed var(--border);
-          font-size: 16px;
-        }
+  /* Name input + buttons */
+  .input {
+    width: 100%;
+    max-width: 600px;
+    background: #111111;
+    color: #f5ecdd;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 24px 0 0;
+    font-size: 18px;
+  }
 
-        .primary {
-          background: var(--accent);
-          color: var(--accent-contrast);
-          border-radius: 999px;
-          border: none;
-          padding: 13px 28px;
-          font-weight: 700;
-          font-size: 16px;
-          min-width: 190px;
-        }
+  .input::placeholder {
+    color: #66635c;
+  }
 
-        .primary:disabled {
-          opacity: 0.55;
-        }
+  .actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 24px;
+    gap: 16px;
+  }
 
-        .list {
-          list-style: none;
-          padding: 0;
-          margin: 24px 0 0;
-          display: grid;
-          gap: 16px;
-          max-width: 900px;
-          margin-left: auto;
-          margin-right: auto;
-        }
+  .link {
+    background: transparent;
+    border: 1px dashed #5f574a;
+    color: #d5cabb;
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+  }
 
-        .result {
-          border-radius: 18px;
-          border: 1px solid var(--border);
-          padding: 16px 18px;
-          background: var(--pill);
-        }
+  .primary {
+    background: #f5ecdd;
+    color: #111111;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 24px;
+    min-width: 180px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+  }
 
-        .title {
-          font-weight: 700;
-          margin-bottom: 4px;
-        }
+  .primary:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 
-        .meta {
-          font-size: 14px;
-          color: var(--muted);
-          margin-bottom: 8px;
-        }
+  /* Results list */
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0 0;
+    display: grid;
+    gap: 16px;
+  }
 
-        .desc {
-          font-size: 15px;
-        }
+  .result {
+    border-radius: 18px;
+    border: 1px solid #373737;
+    padding: 16px 18px;
+    background: #111111;
+  }
 
-        @media (max-width: 768px) {
-          .card {
-            padding: 0 0 32px;
-          }
-          h1 {
-            font-size: 36px;
-          }
-          .grid {
-            grid-template-columns: 1fr;
-            gap: 24px;
-          }
-          .option {
-            min-height: 180px;
-            padding: 28px 20px;
-          }
-        }
-      `}</style>
+  .title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #f5ecdd;
+  }
+
+  .meta {
+    color: #a89d8e;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .desc {
+    color: #e4dbcf;
+    font-size: 15px;
+  }
+
+  /* Mobile tweaks */
+  @media (max-width: 900px) {
+    .wrap {
+      margin-top: 24px;
+      padding: 0 16px 32px;
+    }
+
+    h1 {
+      font-size: 38px;
+    }
+
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .option {
+      min-height: 180px;
+      padding: 32px 20px;
+    }
+
+    .option .label {
+      font-size: 20px;
+    }
+  }
+`}</style>
     </main>
   );
 }
