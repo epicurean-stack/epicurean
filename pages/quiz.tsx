@@ -54,7 +54,7 @@ type Step =
     };
 
 /** ---------------------------
- *  Step configuration (options only)
+ *  Step configuration (options)
  *  Copy for headings is handled in renderHeading()
  *  --------------------------*/
 const STEPS: Step[] = [
@@ -764,12 +764,11 @@ export default function QuizPage() {
           margin: 0 auto 40px;
         }
 
-        /* Consistent question title size */
-        .step-card h1 {
+        h1 {
           font-family: "Cormorant Garamond", "Times New Roman", serif;
-          font-size: 56px;
-          line-height: 1.1;
-          letter-spacing: -0.03em;
+          font-size: 40px; /* consistent heading size across all steps */
+          line-height: 1.16;
+          letter-spacing: 0.02em;
           margin: 6px 0 0;
         }
 
@@ -777,8 +776,6 @@ export default function QuizPage() {
           font-size: 18px;
           color: #c9bfae;
           margin: 0;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
         }
 
         .name-input-wrap {
@@ -800,23 +797,24 @@ export default function QuizPage() {
           color: #6f675c;
         }
 
-        /* BIG CARD GRID */
+        /* GPD-style option grid */
         .options-grid {
           margin: 40px auto 0;
           max-width: 900px;
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(170px, 210px));
-          gap: 24px;
+          grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+          gap: 28px;
           justify-content: center;
         }
 
-        .option-card {
+        /* Increase specificity so we override any global button styles */
+        button.option-card {
           border-radius: 18px;
           border: 1px solid #3a342b;
           background: rgba(255, 255, 255, 0.02);
           color: #f5ecdd;
-          padding: 28px 16px;
-          min-height: 160px;
+          padding: 30px 18px;
+          min-height: 190px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -826,17 +824,18 @@ export default function QuizPage() {
           box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
         }
 
-        .option-card:hover {
+        button.option-card:hover {
           border-color: #f5ecdd;
-          background: rgba(255, 255, 255, 0.04);
+          background: rgba(245, 236, 221, 0.07);
           transform: translateY(-4px);
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
         }
 
-        .option-card.selected {
+        button.option-card.selected {
           background: #f5ecdd;
           color: #111;
           border-color: #f5ecdd;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
         }
 
         .option-label {
@@ -930,8 +929,8 @@ export default function QuizPage() {
             margin-bottom: 28px;
           }
 
-          .step-card h1 {
-            font-size: 34px;
+          h1 {
+            font-size: 30px;
           }
 
           .options-grid {
@@ -939,8 +938,8 @@ export default function QuizPage() {
             max-width: 480px;
           }
 
-          .option-card {
-            min-height: 140px;
+          button.option-card {
+            min-height: 150px;
           }
         }
       `}</style>
