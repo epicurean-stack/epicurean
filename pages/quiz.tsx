@@ -54,7 +54,7 @@ type Step =
     };
 
 /** ---------------------------
- *  Step configuration (options)
+ *  Step configuration (options only)
  *  Copy for headings is handled in renderHeading()
  *  --------------------------*/
 const STEPS: Step[] = [
@@ -394,26 +394,27 @@ export default function QuizPage() {
             <h1>What should we call you?</h1>
           </>
         );
-    case "vibe": {
-  const name = state.name?.trim();
-  return (
-    <>
-      <h1>
-        {name ? (
+      case "vibe": {
+        const name = state.name?.trim();
+        return (
           <>
-            Nice to meet you, {name}!<br />
-            So, what kind of vibe are you going for?
+            <h1>
+              {name ? (
+                <>
+                  Nice to meet you, {name}!<br />
+                  So, what kind of vibe are you going for?
+                </>
+              ) : (
+                <>
+                  Nice to meet you!
+                  <br />
+                  So, what kind of vibe are you going for?
+                </>
+              )}
+            </h1>
           </>
-        ) : (
-          <>
-            Nice to meet you!<br />
-            So, what kind of vibe are you going for?
-          </>
-        )}
-      </h1>
-    </>
-  );
-}
+        );
+      }
       case "group":
         return (
           <>
@@ -488,86 +489,87 @@ export default function QuizPage() {
   };
 
   /** Render helpers for options */
-const renderButtons = (
-  opts: { label: string; value: string }[],
-  id: Single,
-  selectedValue?: string
-) => (
-  <div className="options-grid">
-    {opts.map((o) => {
-      const selected = selectedValue === o.value;
-      return (
-        <div
-          key={o.value}
-          role="button"
-          tabIndex={0}
-          className={`option-card ${selected ? "selected" : ""}`}
-          onClick={() => setSingle(id, o.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setSingle(id, o.value);
-            }
-          }}
-        >
-          <span className="option-label">{o.label}</span>
-        </div>
-      );
-    })}
-  </div>
-);
+  const renderButtons = (
+    opts: { label: string; value: string }[],
+    id: Single,
+    selectedValue?: string
+  ) => (
+    <div className="options-grid">
+      {opts.map((o) => {
+        const selected = selectedValue === o.value;
+        return (
+          <div
+            key={o.value}
+            role="button"
+            tabIndex={0}
+            className={`option-card ${selected ? "selected" : ""}`}
+            onClick={() => setSingle(id, o.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setSingle(id, o.value);
+              }
+            }}
+          >
+            <span className="option-label">{o.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
-  const picked = new Set([...(state[id] as string[] | undefined) || []]);
-  const toggle = (v: string) => toggleMulti(id, v);
+    const picked = new Set([...(state[id] as string[] | undefined) || []]);
+    const toggle = (v: string) => toggleMulti(id, v);
 
-  return (
-    <>
-      <div className="options-grid">
-        {opts.map((o) => {
-          const active = picked.has(o.value);
-          return (
-            <div
-              key={o.value}
-              role="button"
-              tabIndex={0}
-              className={`option-card ${active ? "selected" : ""}`}
-              onClick={() => toggle(o.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  toggle(o.value);
-                }
-              }}
+    return (
+      <>
+        <div className="options-grid">
+          {opts.map((o) => {
+            const active = picked.has(o.value);
+            return (
+              <div
+                key={o.value}
+                role="button"
+                tabIndex={0}
+                className={`option-card ${active ? "selected" : ""}`}
+                onClick={() => toggle(o.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggle(o.value);
+                  }
+                }}
+              >
+                <span className="option-label">{o.label}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="actions">
+          {canGoBack && (
+            <button
+              className="secondary-btn"
+              type="button"
+              onClick={() => go(-1)}
             >
-              <span className="option-label">{o.label}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="actions">
-        {canGoBack && (
+              Back
+            </button>
+          )}
           <button
-            className="secondary-btn"
+            className="primary-btn"
             type="button"
-            onClick={() => go(-1)}
+            disabled={!canAdvanceFromMulti}
+            onClick={() => (isLast ? handleSubmit() : go(1))}
           >
-            Back
+            {isLast ? "See your matches" : "Next"}
           </button>
-        )}
-        <button
-          className="primary-btn"
-          type="button"
-          disabled={!canAdvanceFromMulti}
-          onClick={() => (isLast ? handleSubmit() : go(1))}
-        >
-          {isLast ? "See your matches" : "Next"}
-        </button>
-      </div>
-    </>
-  );
-};
+        </div>
+      </>
+    );
+  };
+
   /** Single-step “Next” button enablement */
   const singleSelectedValue =
     step.type === "single"
@@ -786,14 +788,19 @@ const renderButtons = (
           margin: 0 auto 40px;
         }
 
-       h1 {
-  font-family: "Cormorant Garamond", "Times New Roman", serif;
-  font-size: 44px; /* was 40px */
-  line-height: 1.16;
-  letter-spacing: 0.02em;
-  margin: 6px 0 0;
-}
+        h1 {
+          font-family: "Cormorant Garamond", "Times New Roman", serif;
+          font-size: 44px;
+          line-height: 1.16;
+          letter-spacing: 0.02em;
+          margin: 6px 0 0;
+        }
 
+        .eyebrow {
+          font-size: 18px;
+          color: #c9bfae;
+          margin: 0;
+        }
 
         .name-input-wrap {
           margin: 32px auto 0;
@@ -815,91 +822,59 @@ const renderButtons = (
         }
 
         /* GPD-style option grid */
-       .options-grid {
-  margin: 40px auto 0;
-  max-width: 960px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 24px;
-}
+        .options-grid {
+          margin: 40px auto 0;
+          max-width: 960px;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 24px;
+        }
 
-/* BIG CLEAR BOXES */
-.option-card {
-  width: 180px;
-  height: 220px;
-  border-radius: 12px;
-  border: 1px solid #f5ecdd;
-  background: #111111;
-  color: #f5ecdd;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-
-  padding: 16px;
-  cursor: pointer;
-  transition:
-    transform 150ms ease-out,
-    box-shadow 150ms ease-out,
-    border-color 150ms ease-out,
-    background 150ms ease-out;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
-}
-
-.option-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-  border-color: #ffffff;
-  background: #181818;
-}
-
-.option-card.selected {
-  background: #f5ecdd;
-  color: #111111;
-  border-color: #f5ecdd;
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-}
-
-.option-label {
-  font-size: 16px;
-  line-height: 1.4;
-  font-weight: 600;
-}
-
-        /* Increase specificity so we override any global button styles */
-        button.option-card {
-          border-radius: 18px;
-          border: 1px solid #3a342b;
-          background: rgba(255, 255, 255, 0.02);
+        /* BIG CLEAR BOXES */
+        .option-card {
+          width: 180px;
+          height: 220px;
+          border-radius: 12px;
+          border: 1px solid #f5ecdd;
+          background: #111111;
           color: #f5ecdd;
-          padding: 30px 18px;
-          min-height: 190px;
+
           display: flex;
           align-items: center;
           justify-content: center;
           text-align: center;
+
+          padding: 16px;
           cursor: pointer;
-          transition: all 150ms ease-out;
+          transition:
+            transform 150ms ease-out,
+            box-shadow 150ms ease-out,
+            border-color 150ms ease-out,
+            background 150ms ease-out;
           box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
         }
 
-        button.option-card:hover {
+        .option-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+          border-color: #ffffff;
+          background: #181818;
+        }
+
+        .option-card.selected {
+          background: #f5ecdd;
+          color: #111111;
           border-color: #f5ecdd;
-          background: rgba(245, 236, 221, 0.07);
           transform: translateY(-4px);
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
         }
 
-        button.option-card.selected {
-          background: #f5ecdd;
-          color: #111;
-          border-color: #f5ecdd;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+        .option-label {
+          font-size: 16px;
+          line-height: 1.4;
+          font-weight: 600;
         }
-
 
         .actions {
           margin: 32px auto 0;
@@ -969,18 +944,7 @@ const renderButtons = (
           color: #f0e6d7;
         }
 
-      @media (max-width: 768px) {
-  .options-grid {
-    max-width: 480px;
-    justify-content: center;
-  }
-
-  .option-card {
-    width: 100%;
-    max-width: 260px;
-    height: 180px;
-  }
-
+        @media (max-width: 768px) {
           .quiz-page {
             padding: 16px 16px 56px;
           }
@@ -1000,10 +964,16 @@ const renderButtons = (
           h1 {
             font-size: 30px;
           }
-  
 
-          button.option-card {
-            min-height: 150px;
+          .options-grid {
+            max-width: 480px;
+            justify-content: center;
+          }
+
+          .option-card {
+            width: 100%;
+            max-width: 260px;
+            height: 180px;
           }
         }
       `}</style>
