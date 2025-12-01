@@ -764,11 +764,12 @@ export default function QuizPage() {
           margin: 0 auto 40px;
         }
 
-        h1 {
+        /* Consistent question title size */
+        .step-card h1 {
           font-family: "Cormorant Garamond", "Times New Roman", serif;
-          font-size: 40px;
-          line-height: 1.16;
-          letter-spacing: 0.02em;
+          font-size: 56px;
+          line-height: 1.1;
+          letter-spacing: -0.03em;
           margin: 6px 0 0;
         }
 
@@ -776,6 +777,8 @@ export default function QuizPage() {
           font-size: 18px;
           color: #c9bfae;
           margin: 0;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
         }
 
         .name-input-wrap {
@@ -797,6 +800,7 @@ export default function QuizPage() {
           color: #6f675c;
         }
 
+        /* BIG CARD GRID */
         .options-grid {
           margin: 40px auto 0;
           max-width: 900px;
@@ -926,8 +930,8 @@ export default function QuizPage() {
             margin-bottom: 28px;
           }
 
-          h1 {
-            font-size: 30px;
+          .step-card h1 {
+            font-size: 34px;
           }
 
           .options-grid {
