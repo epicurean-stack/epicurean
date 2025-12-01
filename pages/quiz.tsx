@@ -394,17 +394,26 @@ export default function QuizPage() {
             <h1>What should we call you?</h1>
           </>
         );
-      case "vibe": {
-        const name = state.name?.trim();
-        return (
+    case "vibe": {
+  const name = state.name?.trim();
+  return (
+    <>
+      <h1>
+        {name ? (
           <>
-            <p className="eyebrow">
-              {name ? `Nice to meet you, ${name}!` : "Nice to meet you!"}
-            </p>
-            <h1>So, what kind of vibe are you going for?</h1>
+            Nice to meet you, {name}!<br />
+            So, what kind of vibe are you going for?
           </>
-        );
-      }
+        ) : (
+          <>
+            Nice to meet you!<br />
+            So, what kind of vibe are you going for?
+          </>
+        )}
+      </h1>
+    </>
+  );
+}
       case "group":
         return (
           <>
@@ -785,13 +794,6 @@ const renderButtons = (
   margin: 6px 0 0;
 }
 
-        .eyebrow {
-         font-family: "Cormorant Garamond", "Times New Roman", serif;
-  font-size: 44px; /* was 40px */
-  line-height: 1.16;
-  letter-spacing: 0.02em;
-  margin: 6px 0 0;
-        }
 
         .name-input-wrap {
           margin: 32px auto 0;
@@ -813,14 +815,59 @@ const renderButtons = (
         }
 
         /* GPD-style option grid */
-        .options-grid {
-          margin: 40px auto 0;
-          max-width: 900px;
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-          gap: 28px;
-          justify-content: center;
-        }
+       .options-grid {
+  margin: 40px auto 0;
+  max-width: 960px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+/* BIG CLEAR BOXES */
+.option-card {
+  width: 180px;
+  height: 220px;
+  border-radius: 12px;
+  border: 1px solid #f5ecdd;
+  background: #111111;
+  color: #f5ecdd;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  padding: 16px;
+  cursor: pointer;
+  transition:
+    transform 150ms ease-out,
+    box-shadow 150ms ease-out,
+    border-color 150ms ease-out,
+    background 150ms ease-out;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+}
+
+.option-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  border-color: #ffffff;
+  background: #181818;
+}
+
+.option-card.selected {
+  background: #f5ecdd;
+  color: #111111;
+  border-color: #f5ecdd;
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
+
+.option-label {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+}
 
         /* Increase specificity so we override any global button styles */
         button.option-card {
@@ -853,11 +900,6 @@ const renderButtons = (
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
         }
 
-        .option-label {
-          font-size: 16px;
-          line-height: 1.4;
-          font-weight: 600;
-        }
 
         .actions {
           margin: 32px auto 0;
@@ -927,7 +969,18 @@ const renderButtons = (
           color: #f0e6d7;
         }
 
-        @media (max-width: 768px) {
+      @media (max-width: 768px) {
+  .options-grid {
+    max-width: 480px;
+    justify-content: center;
+  }
+
+  .option-card {
+    width: 100%;
+    max-width: 260px;
+    height: 180px;
+  }
+
           .quiz-page {
             padding: 16px 16px 56px;
           }
@@ -947,11 +1000,7 @@ const renderButtons = (
           h1 {
             font-size: 30px;
           }
-
-          .options-grid {
-            grid-template-columns: 1fr;
-            max-width: 480px;
-          }
+  
 
           button.option-card {
             min-height: 150px;
