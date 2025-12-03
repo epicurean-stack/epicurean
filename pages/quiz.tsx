@@ -415,43 +415,43 @@ export default function QuizPage() {
       case "group":
         return (
           <>
-            <p className="eyebrow">Sounds lovely!</p>
-            <h1>Who are you planning to gather with?</h1>
+            <h1>Sounds lovely<br />
+            Who are you planning to gather with?</h1>
           </>
         );
 
       case "location":
         return (
           <>
-            <p className="eyebrow">Cool!</p>
-            <h1>And, where do you want it to happen?</h1>
+            <h1>Cool!<br />
+            And, where do you want it to happen?</h1>
           </>
         );
 
       case "foodType":
         return (
           <>
-            <p className="eyebrow">
+            <h1>
               Awesome! We&apos;ve definitely got something for you.
-            </p>
-            <h1>Just to check, have you got any initial ideas?</h1>
+            <br />
+            Just to check, have you got any initial ideas?</h1>
           </>
         );
 
       case "involvement":
         return (
           <>
-            <p className="eyebrow">Got it!</p>
-            <h1>So, how involved do you want to be?</h1>
+            <h1>Got it!<br />
+            So, how involved do you want to be?</h1>
           </>
         );
 
       case "experienceTags":
         return (
           <>
-            <p className="eyebrow">
+            <h1>
               And, how would you describe your perfect experience?
-            </p>
+           <br />
             <h1>[pick 2–3]</h1>
           </>
         );
@@ -459,18 +459,18 @@ export default function QuizPage() {
       case "budget":
         return (
           <>
-            <p className="eyebrow">Almost there!</p>
-            <h1>What&apos;s your budget sweet spot per person?</h1>
+            <h1>Almost there!<br />
+            What&apos;s your budget sweet spot per person?</h1>
           </>
         );
 
       case "adventureLevel":
         return (
           <>
-            <p className="eyebrow">
+            <h1>
               On a scale of Bubble Bath to Whitewater Raft…
-            </p>
-            <h1>How adventurous are you and your group?</h1>
+          <br />
+            How adventurous are you and your group?</h1>
           </>
         );
 
@@ -484,8 +484,8 @@ export default function QuizPage() {
       case "animalType":
         return (
           <>
-            <p className="eyebrow">And lastly, just for fun…</p>
-            <h1>Which animal best represents your group?</h1>
+            <h1>And lastly, just for fun…<br />
+            Which animal best represents your group?</h1>
           </>
         );
 
