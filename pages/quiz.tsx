@@ -89,7 +89,7 @@ const STEPS: Step[] = [
     ],
   },
   {
-    id: "foodType",
+    id: "eventType",
     type: "single",
     options: [
       { label: "A delicious meal", value: "meal" },
@@ -386,7 +386,8 @@ export default function QuizPage() {
       case "name":
         return (
           <>
-            <h1>Let&apos;s start on a first-name basis.<br />
+            <h1>Hello! Nice to have you!<br />
+              Let&apos;s start on a first-name basis.<br />
                  What should we call you?</h1>
           </>
         );
@@ -399,12 +400,14 @@ export default function QuizPage() {
               {name ? (
                 <>
                   Nice to meet you, {name}!<br />
-                  So, what kind of vibe are you going for?
+                  Let&apos;s find you the perfect event.<br />
+                  To start, what kind of vibe are you going for?
                 </>
               ) : (
                 <>
                   Nice to meet you!<br />
-                  So, what kind of vibe are you going for?
+                  Let&apos;s find you the perfect event.<br />
+                  To start, what kind of vibe are you going for?
                 </>
               )}
             </h1>
@@ -415,20 +418,20 @@ export default function QuizPage() {
       case "group":
         return (
           <>
-            <h1>Sounds lovely<br />
-            Who are you planning to gather with?</h1>
+            <h1>Yeah, that sounds lovely!<br />
+            Who are you planning to do this with?</h1>
           </>
         );
 
       case "location":
         return (
           <>
-            <h1>Cool!<br />
-            And, where do you want it to happen?</h1>
+            <h1>Nice!<br />
+         I&apos;m wondering, where do you want it to happen?</h1>
           </>
         );
 
-      case "foodType":
+      case "eventType":
         return (
           <>
             <h1>
@@ -442,7 +445,8 @@ export default function QuizPage() {
         return (
           <>
             <h1>Got it!<br />
-            So, how involved do you want to be?</h1>
+             This is starting to shape up nicely!<br />
+           Ideally, how involved do you want to be?</h1>
           </>
         );
 
@@ -450,7 +454,7 @@ export default function QuizPage() {
         return (
           <>
             <h1>
-              And, how would you describe your perfect experience?
+              And, if you were to describe your perfect experience, what would you say?
            <br />
             [pick 2–3]</h1>
           </>
@@ -459,7 +463,7 @@ export default function QuizPage() {
       case "budget":
         return (
           <>
-            <h1>Almost there!<br />
+            <h1>Dreamy! Almost there!<br />
             What&apos;s your budget sweet spot per person?</h1>
           </>
         );
@@ -477,22 +481,10 @@ export default function QuizPage() {
       case "restrictions":
         return (
           <>
-            <h1>Any hard no&apos;s we should know about?</h1>
+            <h1>Finally, any hard no&apos;s we should know about?</h1>
           </>
         );
 
-      case "animalType":
-        return (
-          <>
-            <h1>And lastly, just for fun…<br />
-            Which animal best represents your group?</h1>
-          </>
-        );
-
-      default:
-        return <h1>Epicurean Quiz</h1>;
-    }
-  };
 
   /** Render helpers for options as card boxes */
   const renderButtons = (
