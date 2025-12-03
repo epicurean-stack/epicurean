@@ -279,10 +279,12 @@ export default function QuizPage() {
   const canGoBack = stepIndex > 0;
   const isLast = stepIndex === total - 1;
 
+  // focus text input when name step shows
   useEffect(() => {
     if (step.id === "name") inputRef.current?.focus();
   }, [stepIndex, step.id]);
 
+  /** Navigation helpers */
   const go = (dir: 1 | -1) =>
     setStepIndex((i) => clamp(i + dir, 0, total - 1));
 
@@ -354,6 +356,7 @@ export default function QuizPage() {
       setSubmitting(false);
     }
 
+    // non-blocking lead save
     try {
       const selectedIds =
         Array.isArray(data)
@@ -493,86 +496,133 @@ export default function QuizPage() {
 
   /** Render helpers for options as card boxes */
   const renderButtons = (
-  opts: { label: string; value: string }[],
-  id: Single,
-  selectedValue?: string
-) => (
-  <div className="options-grid">
-    {opts.map((o) => {
-      const selected = selectedValue === o.value;
-      return (
+    opts: { label: string; value: string }[],
+    id: Single,
+    selectedValue?: string
+  ) => (
+    <div
+      className="options-grid"
+      style={{
+        margin: "40px auto 0",
+        maxWidth: "960px",
+        textAlign: "center",
+        whiteSpace: "normal",
+      }}
+    >
+      {opts.map((o) => {
+        const selected = selectedValue === o.value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            className={`option-card ${selected ? "selected" : ""}`}
+            onClick={() => setSingle(id, o.value)}
+            style={{
+              display: "inline-flex",
+              flexDirection: "column",
+              width: 180,
+              height: 220,
+              margin: "0 12px 24px",
+              borderRadius: 12,
+              border: "1px solid #f5ecdd",
+              background: selected ? "#f5ecdd" : "#111111",
+              color: selected ? "#111111" : "#f5ecdd",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              padding: "16px",
+              cursor: "pointer",
+              boxShadow: "0 14px 28px rgba(0, 0, 0, 0.45)",
+              transition:
+                "transform 150ms ease-out, box-shadow 150ms ease-out, background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out",
+            }}
+          >
+            <span className="option-label">{o.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
+    const picked = new Set([...(state[id] as string[] | undefined) || []]);
+    const toggle = (v: string) => toggleMulti(id, v);
+
+    return (
+      <>
         <div
-          key={o.value}
-          role="button"
-          tabIndex={0}
-          className={`option-card ${selected ? "selected" : ""}`}
-          onClick={() => setSingle(id, o.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setSingle(id, o.value);
-            }
+          className="options-grid"
+          style={{
+            margin: "40px auto 0",
+            maxWidth: "960px",
+            textAlign: "center",
+            whiteSpace: "normal",
           }}
         >
-          <span className="option-label">{o.label}</span>
+          {opts.map((o) => {
+            const active = picked.has(o.value);
+            return (
+              <button
+                key={o.value}
+                type="button"
+                className={`option-card ${active ? "selected" : ""}`}
+                onClick={() => toggle(o.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggle(o.value);
+                  }
+                }}
+                style={{
+                  display: "inline-flex",
+                  flexDirection: "column",
+                  width: 180,
+                  height: 220,
+                  margin: "0 12px 24px",
+                  borderRadius: 12,
+                  border: "1px solid #f5ecdd",
+                  background: active ? "#f5ecdd" : "#111111",
+                  color: active ? "#111111" : "#f5ecdd",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  padding: "16px",
+                  cursor: "pointer",
+                  boxShadow: "0 14px 28px rgba(0, 0, 0, 0.45)",
+                  transition:
+                    "transform 150ms ease-out, box-shadow 150ms ease-out, background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out",
+                }}
+              >
+                <span className="option-label">{o.label}</span>
+              </button>
+            );
+          })}
         </div>
-      );
-    })}
-  </div>
-);
 
- const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
-  const picked = new Set([...(state[id] as string[] | undefined) || []]);
-  const toggle = (v: string) => toggleMulti(id, v);
-
-  return (
-    <>
-      <div className="options-grid">
-        {opts.map((o) => {
-          const active = picked.has(o.value);
-          return (
-            <div
-              key={o.value}
-              role="button"
-              tabIndex={0}
-              className={`option-card ${active ? "selected" : ""}`}
-              onClick={() => toggle(o.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  toggle(o.value);
-                }
-              }}
+        <div className="actions">
+          {canGoBack && (
+            <button
+              className="secondary-btn"
+              type="button"
+              onClick={() => go(-1)}
             >
-              <span className="option-label">{o.label}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="actions">
-        {canGoBack && (
+              Back
+            </button>
+          )}
           <button
-            className="secondary-btn"
+            className="primary-btn"
             type="button"
-            onClick={() => go(-1)}
+            disabled={!canAdvanceFromMulti}
+            onClick={() => (isLast ? handleSubmit() : go(1))}
           >
-            Back
+            {isLast ? "See your matches" : "Next"}
           </button>
-        )}
-        <button
-          className="primary-btn"
-          type="button"
-          disabled={!canAdvanceFromMulti}
-          onClick={() => (isLast ? handleSubmit() : go(1))}
-        >
-          {isLast ? "See your matches" : "Next"}
-        </button>
-      </div>
-    </>
-  );
-};
+        </div>
+      </>
+    );
+  };
 
+  /** Single-step “Next” button enablement */
   const singleSelectedValue =
     step.type === "single"
       ? step.id === "budget"
@@ -823,73 +873,11 @@ export default function QuizPage() {
           color: #6f675c;
         }
 
-        /* CARD GRID */
-     .options-grid {
-  margin: 40px auto 0;
-  max-width: 960px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 24px;
-}
-
-.option-card {
-  width: 180px;
-  height: 220px;
-  border-radius: 12px;
-  border: 1px solid #f5ecdd;
-  background: #111111;
-  color: #f5ecdd;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-
-  padding: 16px;
-  cursor: pointer;
-  transition:
-    transform 150ms ease-out,
-    box-shadow 150ms ease-out,
-    border-color 150ms ease-out,
-    background 150ms ease-out;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
-}
-
-.option-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-  border-color: #ffffff;
-  background: #181818;
-}
-
-.option-card.selected {
-  background: #f5ecdd;
-  color: #111111;
-  border-color: #f5ecdd;
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-}
-
-.option-label {
-  font-size: 16px;
-  line-height: 1.4;
-  font-weight: 600;
-}
-
-/* mobile tweak */
-@media (max-width: 768px) {
-  .options-grid {
-    max-width: 480px;
-    justify-content: center;
-  }
-
-  .option-card {
-    width: 100%;
-    max-width: 260px;
-    height: 180px;
-  }
-}
+        .option-label {
+          font-size: 16px;
+          line-height: 1.4;
+          font-weight: 600;
+        }
 
         .actions {
           margin: 32px auto 0;
@@ -978,17 +966,6 @@ export default function QuizPage() {
 
           h1 {
             font-size: 30px;
-          }
-
-          .options-grid {
-            max-width: 480px;
-            justify-content: center;
-          }
-
-          .option-card {
-            width: 100%;
-            max-width: 260px;
-            height: 180px;
           }
         }
       `}</style>
