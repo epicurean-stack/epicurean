@@ -89,7 +89,7 @@ const STEPS: Step[] = [
     ],
   },
   {
-    id: "eventType",
+    id: "foodType",
     type: "single",
     options: [
       { label: "A delicious meal", value: "meal" },
@@ -431,7 +431,7 @@ export default function QuizPage() {
           </>
         );
 
-      case "eventType":
+      case "foodType":
         return (
           <>
             <h1>
