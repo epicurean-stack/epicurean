@@ -848,11 +848,14 @@ export default function QuizPage() {
           margin: 6px 0 0;
         }
 
-        .eyebrow {
-          font-size: 18px;
-          color: #c9bfae;
-          margin: 0;
-        }
+      .eyebrow {
+  font-family: "Cormorant Garamond", "Times New Roman", serif;
+  font-size: 28px;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  margin: 0 0 12px 0;
+  color: #f5ecdd;
+}
 
         .name-input-wrap {
           margin: 32px auto 0;
