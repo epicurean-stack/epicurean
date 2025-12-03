@@ -386,8 +386,8 @@ export default function QuizPage() {
       case "name":
         return (
           <>
-            <p className="eyebrow">Let&apos;s start on a first-name basis.</p>
-            <h1>What should we call you?</h1>
+            <h1>Let&apos;s start on a first-name basis.<br />
+                 What should we call you?</h1>
           </>
         );
 
