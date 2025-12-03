@@ -14,8 +14,7 @@ type Single =
   | "involvement"
   | "flavourProfile"
   | "budget"
-  | "adventureLevel"
-  | "animalType";
+  | "adventureLevel";
 
 type Multi = "experienceTags" | "restrictions";
 
@@ -32,7 +31,6 @@ type QuizState = {
   budget_pp?: number; // numeric version sent to API
   adventureLevel?: string;
   restrictions?: string[];
-  animalType?: string;
 };
 
 type Step =
@@ -163,20 +161,6 @@ const STEPS: Step[] = [
     ],
     min: 0,
     max: 3,
-  },
-  {
-    id: "animalType",
-    type: "single",
-    options: [
-      { label: "Chill cats", value: "chillCats" },
-      { label: "Curious foxes", value: "curiousFoxes" },
-      { label: "Party parrots", value: "partyParrots" },
-      { label: "Explorer bears", value: "explorerBears" },
-      { label: "Wise owls", value: "wiseOwls" },
-      { label: "Bold lions", value: "boldLions" },
-      { label: "Playful penguins", value: "playfulPenguins" },
-      { label: "Creative octopi", value: "creativeOctopi" },
-    ],
   },
 ];
 
@@ -386,9 +370,13 @@ export default function QuizPage() {
       case "name":
         return (
           <>
-            <h1>Hello! Nice to have you!<br />
-              Let&apos;s start on a first-name basis.<br />
-                 What should we call you?</h1>
+            <h1>
+              Hello! Nice to have you!
+              <br />
+              Let&apos;s start on a first-name basis.
+              <br />
+              What should we call you?
+            </h1>
           </>
         );
 
@@ -399,14 +387,18 @@ export default function QuizPage() {
             <h1>
               {name ? (
                 <>
-                  Nice to meet you, {name}!<br />
-                  Let&apos;s find you the perfect event.<br />
+                  Nice to meet you, {name}!
+                  <br />
+                  Let&apos;s find you the perfect event.
+                  <br />
                   To start, what kind of vibe are you going for?
                 </>
               ) : (
                 <>
-                  Nice to meet you!<br />
-                  Let&apos;s find you the perfect event.<br />
+                  Nice to meet you!
+                  <br />
+                  Let&apos;s find you the perfect event.
+                  <br />
                   To start, what kind of vibe are you going for?
                 </>
               )}
@@ -418,16 +410,22 @@ export default function QuizPage() {
       case "group":
         return (
           <>
-            <h1>Yeah, that sounds lovely!<br />
-            Who are you planning to do this with?</h1>
+            <h1>
+              Yeah, that sounds lovely!
+              <br />
+              Who are you planning to do this with?
+            </h1>
           </>
         );
 
       case "location":
         return (
           <>
-            <h1>Nice!<br />
-         I&apos;m wondering, where do you want it to happen?</h1>
+            <h1>
+              Nice!
+              <br />
+              I&apos;m wondering, where do you want it to happen?
+            </h1>
           </>
         );
 
@@ -436,17 +434,22 @@ export default function QuizPage() {
           <>
             <h1>
               Awesome! We&apos;ve definitely got something for you.
-            <br />
-            Just to check, have you got any initial ideas?</h1>
+              <br />
+              Just to check, have you got any initial ideas?
+            </h1>
           </>
         );
 
       case "involvement":
         return (
           <>
-            <h1>Got it!<br />
-             This is starting to shape up nicely!<br />
-           Ideally, how involved do you want to be?</h1>
+            <h1>
+              Got it!
+              <br />
+              This is starting to shape up nicely!
+              <br />
+              Ideally, how involved do you want to be?
+            </h1>
           </>
         );
 
@@ -454,17 +457,22 @@ export default function QuizPage() {
         return (
           <>
             <h1>
-              And, if you were to describe your perfect experience, what would you say?
-           <br />
-            [pick 2–3]</h1>
+              And, if you were to describe your perfect experience, what would
+              you say?
+              <br />
+              [pick 2–3]
+            </h1>
           </>
         );
 
       case "budget":
         return (
           <>
-            <h1>Dreamy! Almost there!<br />
-            What&apos;s your budget sweet spot per person?</h1>
+            <h1>
+              Dreamy! Almost there!
+              <br />
+              What&apos;s your budget sweet spot per person?
+            </h1>
           </>
         );
 
@@ -473,8 +481,9 @@ export default function QuizPage() {
           <>
             <h1>
               On a scale of Bubble Bath to Whitewater Raft…
-          <br />
-            How adventurous are you and your group?</h1>
+              <br />
+              How adventurous are you and your group?
+            </h1>
           </>
         );
 
@@ -484,6 +493,11 @@ export default function QuizPage() {
             <h1>Finally, any hard no&apos;s we should know about?</h1>
           </>
         );
+
+      default:
+        return <h1>Epicurean Quiz</h1>;
+    }
+  };
 
 
   /** Render helpers for options as card boxes */
