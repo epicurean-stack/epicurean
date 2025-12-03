@@ -1,30 +1,29 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import Airtable from "airtable";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const AIRTABLE = (process.env.AIRTABLE_URL || "").replace(/\/$/, "");
-  const BASE = process.env.AIRTABLE_BASE_ID;
-  const TOKEN = process.env.AIRTABLE_TOKEN;
+const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+  process.env.AIRTABLE_BASE_ID!
+);
 
-  try {
-    const response = await fetch(`${AIRTABLE}/${BASE}/Experiences?pageSize=50`, {
-      headers: { Authorization: `Bearer ${TOKEN}` },
-    });
-    const data = await response.json();
+async function fetchExperiences(): Promise<Experience[]> {
+  const records = await base("Experiences").select().all();
 
-    // Map to simplified structure
-    const clean = (data.records || []).map((r: any) => ({
-      id: r.id,
-      title: r.fields["Title"],
-      format: r.fields["Format"],
-      cuisine: r.fields["Cuisine Focus"],
-      vibe: r.fields["Vibe"],
-      minPrice: r.fields["Price Per Person (Min)"],
-      maxPrice: r.fields["Price Per Person (Max)"],
-      description: r.fields["Description"],
-    }));
-
-    return res.status(200).json(clean);
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || "Unknown error" });
-  }
+  return records.map((r) => ({
+    id: r.id,
+    title: r.get("Title") as string,
+    description: (r.get("Description") as string) ?? "",
+    format: (r.get("Format") as string) ?? "",
+    cuisine: (r.get("Cuisine_Focus") as string) ?? "",
+    mode: (r.get("Mode") as Mode) ?? "Out",
+    minParty: (r.get("Min party") as number) ?? 1,
+    maxParty: (r.get("Max party") as number) ?? 10,
+    minBudgetPP: (r.get("Min budget pp") as number) ?? 50,
+    maxBudgetPP: (r.get("Max budget pp") as number) ?? 500,
+    vibes: (r.get("Vibe tags") as string[]) ?? [],
+    tone: (r.get("Tone tags") as string[]) ?? [],
+    flavour: (r.get("Flavour tags") as string[]) ?? [],
+    minAdventure: (r.get("Min adventure") as number) ?? 1,
+    maxAdventure: (r.get("Max adventure") as number) ?? 3,
+    involvement: (r.get("Involvement") as string) ?? "Anything",
+    hardNos: (r.get("Hard nos") as string[]) ?? [],
+  }));
 }
