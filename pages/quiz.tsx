@@ -385,190 +385,186 @@ export default function QuizPage() {
   };
 
   /** Heading copy based on step */
-  const renderHeading = () => {
-    switch (step.id) {
-      case "name":
-        return (
-          <>
-            <p className="eyebrow">Let&apos;s start on a first-name basis.</p>
-            <h1>What should we call you?</h1>
-          </>
-        );
-      case "vibe": {
-        const name = state.name?.trim();
-        return (
-          <>
-            <h1>
-              {name ? (
-                <>
-                  Nice to meet you, {name}!<br />
-                  So, what kind of vibe are you going for?
-                </>
-              ) : (
-                <>
-                  Nice to meet you!
-                  <br />
-                  So, what kind of vibe are you going for?
-                </>
-              )}
-            </h1>
-          </>
-        );
-      }
-      case "group":
-        return (
-          <>
-            <p className="eyebrow">Sounds lovely!</p>
-            <h1>Who are you planning to gather with?</h1>
-          </>
-        );
-      case "location":
-        return (
-          <>
-            <p className="eyebrow">Cool!</p>
-            <h1>And, where do you want it to happen?</h1>
-          </>
-        );
-      case "foodType":
-        return (
-          <>
-            <p className="eyebrow">
-              Awesome! We&apos;ve definitely got something for you.
-            </p>
-            <h1>Just to check, have you got any initial ideas?</h1>
-          </>
-        );
-      case "involvement":
-        return (
-          <>
-            <p className="eyebrow">Got it!</p>
-            <h1>So, how involved do you want to be?</h1>
-          </>
-        );
-      case "experienceTags":
-        return (
-          <>
-            <p className="eyebrow">
-              And, how would you describe your perfect experience?
-            </p>
-            <h1>[pick 2–3]</h1>
-          </>
-        );
-      case "budget":
-        return (
-          <>
-            <p className="eyebrow">Almost there!</p>
-            <h1>What&apos;s your budget sweet spot per person?</h1>
-          </>
-        );
-      case "adventureLevel":
-        return (
-          <>
-            <p className="eyebrow">
-              On a scale of Bubble Bath to Whitewater Raft…
-            </p>
-            <h1>How adventurous are you and your group?</h1>
-          </>
-        );
-      case "restrictions":
-        return (
-          <>
-            <h1>Any hard no&apos;s we should know about?</h1>
-          </>
-        );
-      case "animalType":
-        return (
-          <>
-            <p className="eyebrow">And lastly, just for fun…</p>
-            <h1>Which animal best represents your group?</h1>
-          </>
-        );
-      default:
-        return <h1>Epicurean Quiz</h1>;
+const renderHeading = () => {
+  switch (step.id) {
+    case "name":
+      return (
+        <>
+          <p className="eyebrow">Let&apos;s start on a first-name basis.</p>
+          <h1>What should we call you?</h1>
+        </>
+      );
+
+    case "vibe": {
+      const name = state.name?.trim();
+      return (
+        <>
+          <h1>
+            {name ? (
+              <>
+                Nice to meet you, {name}!<br />
+                So, what kind of vibe are you going for?
+              </>
+            ) : (
+              <>
+                Nice to meet you!<br />
+                So, what kind of vibe are you going for?
+              </>
+            )}
+          </h1>
+        </>
+      );
     }
-  };
 
-  /** Render helpers for options */
-  const renderButtons = (
-    opts: { label: string; value: string }[],
-    id: Single,
-    selectedValue?: string
-  ) => (
-    <div className="options-grid">
-      {opts.map((o) => {
-        const selected = selectedValue === o.value;
-        return (
-          <div
-            key={o.value}
-            role="button"
-            tabIndex={0}
-            className={`option-card ${selected ? "selected" : ""}`}
-            onClick={() => setSingle(id, o.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setSingle(id, o.value);
-              }
-            }}
-          >
-            <span className="option-label">{o.label}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
+    case "group":
+      return (
+        <>
+          <p className="eyebrow">Sounds lovely!</p>
+          <h1>Who are you planning to gather with?</h1>
+        </>
+      );
 
-  const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
-    const picked = new Set([...(state[id] as string[] | undefined) || []]);
-    const toggle = (v: string) => toggleMulti(id, v);
+    case "location":
+      return (
+        <>
+          <p className="eyebrow">Cool!</p>
+          <h1>And, where do you want it to happen?</h1>
+        </>
+      );
 
-    return (
-      <>
-        <div className="options-grid">
-          {opts.map((o) => {
-            const active = picked.has(o.value);
-            return (
-              <div
-                key={o.value}
-                role="button"
-                tabIndex={0}
-                className={`option-card ${active ? "selected" : ""}`}
-                onClick={() => toggle(o.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    toggle(o.value);
-                  }
-                }}
-              >
-                <span className="option-label">{o.label}</span>
-              </div>
-            );
-          })}
-        </div>
+    case "foodType":
+      return (
+        <>
+          <p className="eyebrow">
+            Awesome! We&apos;ve definitely got something for you.
+          </p>
+          <h1>Just to check, have you got any initial ideas?</h1>
+        </>
+      );
 
-        <div className="actions">
-          {canGoBack && (
+    case "involvement":
+      return (
+        <>
+          <p className="eyebrow">Got it!</p>
+          <h1>So, how involved do you want to be?</h1>
+        </>
+      );
+
+    case "experienceTags":
+      return (
+        <>
+          <p className="eyebrow">
+            And, how would you describe your perfect experience?
+          </p>
+          <h1>[pick 2–3]</h1>
+        </>
+      );
+
+    case "budget":
+      return (
+        <>
+          <p className="eyebrow">Almost there!</p>
+          <h1>What&apos;s your budget sweet spot per person?</h1>
+        </>
+      );
+
+    case "adventureLevel":
+      return (
+        <>
+          <p className="eyebrow">
+            On a scale of Bubble Bath to Whitewater Raft…
+          </p>
+          <h1>How adventurous are you and your group?</h1>
+        </>
+      );
+
+    case "restrictions":
+      return (
+        <>
+          <h1>Any hard no&apos;s we should know about?</h1>
+        </>
+      );
+
+    case "animalType":
+      return (
+        <>
+          <p className="eyebrow">And lastly, just for fun…</p>
+          <h1>Which animal best represents your group?</h1>
+        </>
+      );
+
+    default:
+      return <h1>Epicurean Quiz</h1>;
+  }
+};
+
+ /** Render helpers for options */
+const renderButtons = (
+  opts: { label: string; value: string }[],
+  id: Single,
+  selectedValue?: string
+) => (
+  <div className="options-grid">
+    {opts.map((o) => {
+      const selected = selectedValue === o.value;
+      return (
+        <button
+          key={o.value}
+          type="button"
+          className={`option-card ${selected ? "selected" : ""}`}
+          onClick={() => setSingle(id, o.value)}
+        >
+          <span className="option-label">{o.label}</span>
+        </button>
+      );
+    })}
+  </div>
+);
+
+const renderMulti = (opts: { label: string; value: string }[], id: Multi) => {
+  const picked = new Set([...(state[id] as string[] | undefined) || []]);
+  const toggle = (v: string) => toggleMulti(id, v);
+
+  return (
+    <>
+      <div className="options-grid">
+        {opts.map((o) => {
+          const active = picked.has(o.value);
+          return (
             <button
-              className="secondary-btn"
+              key={o.value}
               type="button"
-              onClick={() => go(-1)}
+              className={`option-card ${active ? "selected" : ""}`}
+              onClick={() => toggle(o.value)}
             >
-              Back
+              <span className="option-label">{o.label}</span>
             </button>
-          )}
+          );
+        })}
+      </div>
+
+      <div className="actions">
+        {canGoBack && (
           <button
-            className="primary-btn"
+            className="secondary-btn"
             type="button"
-            disabled={!canAdvanceFromMulti}
-            onClick={() => (isLast ? handleSubmit() : go(1))}
+            onClick={() => go(-1)}
           >
-            {isLast ? "See your matches" : "Next"}
+            Back
           </button>
-        </div>
-      </>
-    );
-  };
+        )}
+        <button
+          className="primary-btn"
+          type="button"
+          disabled={!canAdvanceFromMulti}
+          onClick={() => (isLast ? handleSubmit() : go(1))}
+        >
+          {isLast ? "See your matches" : "Next"}
+        </button>
+      </div>
+    </>
+  );
+};
 
   /** Single-step “Next” button enablement */
   const singleSelectedValue =
@@ -822,59 +818,73 @@ export default function QuizPage() {
         }
 
         /* GPD-style option grid */
-        .options-grid {
-          margin: 40px auto 0;
-          max-width: 960px;
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 24px;
-        }
+.options-grid {
+  margin: 40px auto 0;
+  max-width: 960px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
 
-        /* BIG CLEAR BOXES */
-        .option-card {
-          width: 180px;
-          height: 220px;
-          border-radius: 12px;
-          border: 1px solid #f5ecdd;
-          background: #111111;
-          color: #f5ecdd;
+/* Card boxes */
+.option-card {
+  width: 180px;
+  height: 220px;
+  border-radius: 12px;
+  border: 1px solid #f5ecdd;
+  background: #111111;
+  color: #f5ecdd;
 
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 
-          padding: 16px;
-          cursor: pointer;
-          transition:
-            transform 150ms ease-out,
-            box-shadow 150ms ease-out,
-            border-color 150ms ease-out,
-            background 150ms ease-out;
-          box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
-        }
+  padding: 16px;
+  cursor: pointer;
+  transition:
+    transform 150ms ease-out,
+    box-shadow 150ms ease-out,
+    border-color 150ms ease-out,
+    background 150ms ease-out;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+}
 
-        .option-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-          border-color: #ffffff;
-          background: #181818;
-        }
+.option-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  border-color: #ffffff;
+  background: #181818;
+}
 
-        .option-card.selected {
-          background: #f5ecdd;
-          color: #111111;
-          border-color: #f5ecdd;
-          transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-        }
+.option-card.selected {
+  background: #f5ecdd;
+  color: #111111;
+  border-color: #f5ecdd;
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
 
-        .option-label {
-          font-size: 16px;
-          line-height: 1.4;
-          font-weight: 600;
-        }
+.option-label {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .options-grid {
+    max-width: 480px;
+    justify-content: center;
+  }
+
+  .option-card {
+    width: 100%;
+    max-width: 260px;
+    height: 180px;
+  }
+}
 
         .actions {
           margin: 32px auto 0;
@@ -968,12 +978,6 @@ export default function QuizPage() {
           .options-grid {
             max-width: 480px;
             justify-content: center;
-          }
-
-          .option-card {
-            width: 100%;
-            max-width: 260px;
-            height: 180px;
           }
         }
       `}</style>
