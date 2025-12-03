@@ -649,7 +649,7 @@ export default function QuizPage() {
                 <input
                   ref={inputRef}
                   className="name-input"
-                  placeholder="[Free text]"
+                  placeholder="Your name goes here!"
                   defaultValue={state.name || ""}
                   onChange={(e) =>
                     setState((s) => ({ ...s, name: e.target.value }))
