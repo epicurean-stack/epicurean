@@ -424,7 +424,7 @@ export default function QuizPage() {
             <h1>
               Nice!
               <br />
-              I&apos;m wondering, where do you want it to happen?
+              Where do you want it to happen?
             </h1>
           </>
         );
@@ -435,7 +435,7 @@ export default function QuizPage() {
             <h1>
               Awesome! We&apos;ve definitely got something for you.
               <br />
-              Just to check, have you got any initial ideas?
+              Just to check, have you got any initial ideas on what you want to do?
             </h1>
           </>
         );
