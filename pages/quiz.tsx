@@ -452,7 +452,7 @@ export default function QuizPage() {
             <h1>
               And, how would you describe your perfect experience?
            <br />
-            <h1>[pick 2–3]</h1>
+            [pick 2–3]</h1>
           </>
         );
 
