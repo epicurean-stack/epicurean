@@ -633,11 +633,7 @@ export default function QuizPage() {
   /** ---------------- Render ---------------- */
   return (
     <main className="quiz-page">
-      <header className="quiz-header">
-        <Link href="/" className="logo">
-          EPICUREAN
-        </Link>
-      </header>
+  
 
       <div className="progress">
         <div className="bar" style={{ width: `${progress}%` }} />
